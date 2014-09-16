@@ -1,0 +1,257 @@
+---
+title: "E4 Results and Figures"
+author: "Marissa Lee"
+date: "September 15, 2014"
+output:
+  html_document: default
+---
+
+*This code needs the following raw data file:* e4_trimmedData.txt 
+
+*This code does the following things:*  
+
+1. Analyzes variation in biomass and soil measurements in unplanted and monoculture pots
+2. Analyzes variation in biomass and soil measurements in mixed community pots
+3. Analyzes the relationship between Microstegium density treatment on the measured Microstegium abundance at harvest
+
+*This code produces the following items:*
+
+1.  Unplanted and monoculture pots  
+  +  summary table (aggregated by plant): mean, se, n = 'summary_monos.txt'  
+  + figure 2: resps v plant = 'fig2_monos.png'  
+  + lme4 model: resp<-plant+(1|bk) and test of fixed effects = 'termeffs_monos.txt'  
+2. Mixed community pots
+  + summary tables (aggregated by (1) mvtrt, (2) comptrt, and (3) factorial trts): mean, se, n = 'summary_mixedcomm.txt'
+  + plot parameters to determine if correlated: logtotal/mvtrt, logtotal/comptrt = 'param_correl.png'
+  + figure 3: resps v mvtrt, resps v logtotal = 'fig3_mixedcomm.png'
+3. Relationship between Microstegium density treatment on the measured Microstegium abundance at harvest
+  + plot of mvabund v mvtrt, mvrelabund v mvtrt
+  + lme4 models: mvabund/relmvabund<-mvtrt+(1|bk) and test of fixed effects = 'termeffs_abund_mixedcomm.txt'  
+
+__________________________
+__________________________
+
+*Load libraries*
+```{r, message=FALSE}
+library(doBy)
+library(lme4)
+# library(coefplot2)# this no longer exists for R version 3.1.1
+library(coefplot)# hopefully this has the same functionality...
+require(data.table)
+```
+
+*Import data*
+```{r, echo=FALSE}
+data<-read.table('e4_trimmedData.txt',header=T)
+```
+
+*Modify...*
+Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot). Make sure that block is coded as a factor.  Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
+```{r, echo=FALSE}
+data$total<-data$Mvabund + data$pavi + data$sobi
+data$bk<-as.factor(data$bk)
+data$compabund<-data$pavi + data$sobi
+```
+
+*Subset...*
+Subset data based on whether it is a monoculture or mixture pot, also subset by the species identity (in the case of monocultures) or the neighbor treatment (in the case of the mixtures).
+```{r, echo=FALSE}
+Empty<-data[data$type=='Empty',]
+Mivi<-data[data$type=='Mivi',]
+Pavi<-data[data$type=='Pavi',]
+Sobi<-data[data$type=='Sobi',]
+CompEmpty<-data[data$type=='CompEmpty',]
+CompPavi<-data[data$type=='CompPavi',]
+CompSobi<-data[data$type=='CompSobi',]
+```
+
+__________________________
+
+#1. UNPLANTED AND MONOCULTURE POTS  
+
+*Consolidate relevant data*
+```{r, include=FALSE}
+datam<-rbind(Empty, Pavi, Sobi, Mivi)
+#make a column for monoculture/unplanted categories
+datam$plant<-rep(NA,length(datam$type)) #key: 1= Unplanted, 2=M.v., 3= P.v., 4=S.b.
+datam[which(datam$type=='Empty'),19]<-1 
+datam[which(datam$type=='Mivi'),19]<-2
+datam[which(datam$type=='Pavi'),19]<-3
+datam[which(datam$type=='Sobi'),19]<-4
+#xs
+plant<-datam$plant; plantlabels<-c('Unplanted','M.v.','P.v.','S.b.')
+bk<-datam$bk
+#ys
+soilmoi<-datam$soilmoi
+nodi<-datam$nodi
+nitrifd<-datam$nitrifd
+#other
+total<-datam$total
+tmp<-total; hist(tmp); shapiro.test(tmp) #not normal, but better than log-transformed
+compabund<-data$compabund
+
+datamf<-data.frame(total, soilmoi, nodi, nitrifd, plant, bk)
+head(datamf)
+#write.table(datamf, file='datamf.txt', sep='\t', row.names=F)
+```
+
+*Summarize and Plot*   
+Prep for the figure
+```{r, echo=FALSE}
+par(mfrow = c(2, 2)) #number of panels
+par(cex = 0.8) #font size
+par(mar = c(0, 4, 0, 0), oma = c(8, 5, 0.5, 0.5)) #size of inner, outer margins 
+par(tcl = -0.25) #length of tick marks
+par(mgp = c(2, 0.6, 0))
+
+xlims <- c(0.5,4.5)
+resps<-datamf[,c(1:4)]
+#View(resps)
+respnames<-c('Total dry aboveground biomass (g)','Soil moisture (%)','Nitrate (ugN/G)','Net Nitrification (ugN/G*d)')
+shortnames<-c('total','soilmoi','nodi','nitrifd')
+resplabels<-c('Total dry aboveground biomass (g)','Soil moisture (%)',
+              expression(paste("Nitrate (",mu,"gN/G)")),
+              expression(paste("Nitrification (",mu,"gN/G"%*%"d)"))) #this needs to go directly into the plotting fxn?
+
+yl1<-c(0,100) #total
+yl2<-c(55,90) #soilmoi
+yl3<-c(0,110) #nodi
+yl4<-c(-4,4) #nitrifd
+ylims<-cbind(yl1,yl2,yl3,yl4)
+yat1<-seq.int(0,100, by=10) #total
+yat2<-seq.int(55,90, by=5) #soilmoi
+yat3<-seq.int(0,110, by=10) #nodi
+yat4<-seq.int(-4,4, by=2) #nitrifd
+yat<-list(yat1,yat2,yat3,yat4)
+tuk1<-c('a','b','b','c') #total
+tuk2<-c('a','a','a','b') #soilmoi
+tuk3<-c('a','b','bc','c') #nodi
+tuk4<-c('','','','') #nitrifd
+tukletters<-cbind(tuk1,tuk2,tuk3,tuk4)
+tukletters<-rbind(tukletters[1,],tukletters[3,],tukletters[4,],tukletters[2,]) #reorganize so that this matches 'plantvec'
+
+sums<-list()
+models<-list()
+modelfits<-list()
+termeffs<-numeric(0)
+lm.pvals<-list()
+tukys<-list()
+
+#change the order of the panels
+panelseq<-c(1,3,2,4)
+```
+
+Run the loop
+```{r, echo=FALSE}
+for (i in panelseq){
+  
+  resp<-resps[,i]
+  data<-data.frame(resp,plant,bk)
+  #Part 1 - summarize
+  dat<-data.table(data)
+  sum<-dat[,list(mean=mean(resp), se=sd(resp)/sqrt(length(resp)), n=length(resp)),by=plant]
+  plantvec<-sum$plant
+  mean<-sum$mean
+  se<-sum$se
+	sum1<-orderBy(~plant,sum)
+	sum1$plant<-plantlabels
+	sums[[i]]<-sum1
+  #Part 2 - lme model
+	trt<-as.factor(plant)
+  data1<-data.frame(resp, trt,bk)
+	model <- lmer(resp ~ trt+(1|bk), data=data1)
+  modela<- lmer(resp ~ 1+(1|bk), data=data1)
+	
+  #NEED TO CHECK THIS OUT... some changes have been made to lmer, so this fxn doesn't work now
+	#logLik<-summary(model)@logLik
+  #logLikrow<-c(shortnames[i],NA,NA,logLik)
+	#REmat<-summary(model)@REmat
+	#coefs<-summary(model)@coefs
+  #coefmat<-cbind(rownames(coefs),coefs)
+  #modelfit<-rbind(logLikrow,REmat,coefmat)
+  
+  #modelfits[[i]]<-modelfit
+  #models[[i]]<-model
+
+  termeff<-anova(modela,model)
+	delAIC<-termeff[2,2]-termeff[1,2]
+	Chisq<-termeff[2,5]
+	ChisqDF<-termeff[2,6]
+	pval<-termeff[2,7]
+	termeffrow<-c(delAIC,Chisq,ChisqDF,pval)
+  termeffs<-rbind(termeffs,termeffrow)
+  
+	#Part 2b - lm model and post-hoc tests
+	lm <- lm(resp ~ trt, data=data1)
+	lmfit<-aov(lm)
+	lm.pval<-anova(lmfit)$'Pr(>F)'[1]
+	lm.pvals[[i]]<-lm.pval
+	tuky<-TukeyHSD(lmfit)$trt
+	respname<-rep(respnames[i],dim(tuky)[1])
+	mat<-cbind(respname,tuky)
+	tukys[[i]]<-mat
+  
+  #Part 3 - Plot
+  plot(resp~plant, data, axes = FALSE, type = "n", 
+       xlab='', ylab='',
+         xlim=xlims,
+         ylim=ylims[,i])
+  #add points
+	#points(y=resp,x=jitter(data$plant, .5), pch=16)   	#data
+	points(y=mean,x=plantvec+.1, pch=16)				#plant means
+	text(y=mean,x=plantvec-.1, labels=tukletters[,i]) #tukys
+  arrows(plantvec+.1,mean+se, 						#error bars
+	       plantvec+.1,mean-se,
+	       angle=90, code=3, length=0, col=1) 
+  #add panel letters and boxes
+  mtext(letters[i], side = 3, line = -1.5, adj = 0.05, cex = 1, font=2) 
+	box()
+  #x-axes
+  if (i %in% c(2, 4)) 
+  { axis(1, at = 1:4, labels=F)
+    labels <- c('Unplanted',expression(italic("Microstegium")),expression(italic("Panicum")),expression(italic("Sorghum"))) 
+    #will need to paste these labels in later bc italics don't work...
+    text(1:4, par("usr")[3] - 0.25, srt = 45, adj = c(1,1),
+         labels = labels, xpd = TRUE)
+    mtext("Plant species", side = 1, outer = F, cex = 1, adj= 0.55, line=5)
+  }
+  #y-axes
+  axis(2, at = yat[[i]])
+	mtext(resplabels[i], side = 2, outer = F, cex = 1, line=2.2)
+  
+}
+```
+
+Check out the results
+```{r, include=FALSE}
+#export 4-panel figure = 'fig2_monos.png'
+#export sums table
+names(sums)<-shortnames
+sumsdf<-data.frame(sums)
+#write.table(sumsdf, file='summary_monos.txt', sep='\t', row.names=F)
+```
+
+*LME model summary*... this isn't working right now
+```{r}
+#export lme model summary, nested anova results
+#THIS DOESN'T WORK BECAUSE OF LMER FXN UPDATE, SEE ABOVE
+modelfits<-data.frame(modelfits)
+#write.table(modelfits, file='modelfits_monos.txt', sep='\t', row.names=T, col.names=T)
+colnames(termeffs)<-c('delAIC','Chisq','ChisqDF','pval')
+rownames(termeffs)<-shortnames
+#write.table(termeffs, file='termeffs_monos.txt', sep='\t', row.names=T, col.names=T)
+```
+
+*LM model summary and tukey results*
+```{r, echo=FALSE}
+#export lm model summary, tukey results
+names(lm.pvals)<-shortnames
+lm.pvalsdf<-data.frame(lm.pvals)
+row.names(lm.pvalsdf)<-'lm.pval'
+names(tukys)<-shortnames
+tukysdf<-data.frame(tukys)
+head(tukysdf)
+#write.table(tukysdf, file='tukys_monos.txt', sep='\t', row.names=T, col.names=T)
+```
+
+
