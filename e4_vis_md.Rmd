@@ -1,0 +1,80 @@
+---
+title: "E4 Visualization"
+author: "Marissa Lee"
+date: "September 26, 2014"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+*This code needs the following raw data file:* e4_trimmedData.txt 
+
+*This code does the following things:*  
+
+1. Creates dataframes where y = soil property impact to the presence of Mv
+2. Produce 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
+  + Panel rows will be (a) Mv only, (b) Mv + Panicum, (c) Mv + Sorghum
+  + Panel cols will be (a) Mv biomass/Relative biomass, (b) Neighbor biomass/Relative biomass, (c) total biomass
+
+*This code produces the following items:*
+
+1. Multi-panel figures described above  
+
+__________________________
+__________________________
+
+*Load libraries*
+```{r, message=FALSE}
+library(ggplot2)
+```
+
+*Import data*
+```{r, echo=FALSE}
+data<-read.table('e4_trimmedData.txt',header=T)
+```
+
+*Modify...*
+Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot). Make sure that block is coded as a factor.  Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
+```{r, echo=FALSE}
+data$total<-data$Mvabund + data$pavi + data$sobi
+data$bk<-as.factor(data$bk)
+data$compabund<-data$pavi + data$sobi
+
+head(data) #check out the dataframe
+```
+
+*Subset...*
+Subset data based on whether it is a monoculture or mixture pot, also subset by the species identity (in the case of monocultures) or the neighbor treatment (in the case of the mixtures).
+```{r, echo=FALSE}
+Empty<-data[data$type=='Empty',]
+Mivi<-data[data$type=='Mivi',]
+Pavi<-data[data$type=='Pavi',]
+Sobi<-data[data$type=='Sobi',]
+CompEmpty<-data[data$type=='CompEmpty',]
+CompPavi<-data[data$type=='CompPavi',]
+CompSobi<-data[data$type=='CompSobi',]
+```
+
+
+__________________________
+
+#1. Calculate the impact of invader presence on soil properties (Si1 - Si1) 
+
+*Look at just one section of the experimental design - the Mv-alone treatments*
+```{r, include=FALSE}
+data.alone<-rbind(Empty, Mivi)
+head(data.alone)
+
+#make a column to designate Si0 and Si1_density rows
+data.alone$Si<-rep(NA,length(data.alone$type)) #create the new col
+lastcol<-length(colnames(data.alone)) #save the colnum
+data.alone[which(data.alone$type=='Empty'),lastcol]<-'Si0' #assign val for selected rows
+
+# I stopped here
+
+
+#make a column for monoculture/unplanted categories
+
+
+
+```
