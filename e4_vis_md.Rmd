@@ -7,12 +7,16 @@ output:
   html_document: default
 ---
 
-*This code needs the following raw data file:* e4_trimmedData.txt 
+*This code needs the following raw data files:* All are located in 'e4DataPackage_092614' folder
+
+1. 'e4_potData.txt'
+2. 'e4_potData_dictionary.txt'
 
 *This code does the following things:*  
 
-1. Creates dataframes where y = soil property impact to the presence of Mv
-2. Produce 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
+1. Cleans raw dataset.
+2. Creates dataframes where y = soil property impact to the presence of Mv
+3. Produces 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
   + Panel rows will be (a) Mv only, (b) Mv + Panicum, (c) Mv + Sorghum
   + Panel cols will be (a) Mv biomass/Relative biomass, (b) Neighbor biomass/Relative biomass, (c) total biomass
 
@@ -20,47 +24,124 @@ output:
 
 1. Multi-panel figures described above  
 
-__________________________
-__________________________
+
+
+*******************
 
 *Load libraries*
 ```{r, message=FALSE}
 library(ggplot2)
 ```
 
-*Import data*
+*******************
+
+#1. Clean raw dataset
+
+*Import data and check it out*  
+Import  
 ```{r, echo=FALSE}
-data<-read.table('e4_trimmedData.txt',header=T)
+data<-read.table('e4DataPackage_092614/e4_potData.txt',header=T, sep="\t")
+datadic<-read.table('e4DataPackage_092614/e4_potData_dictionary.txt',header=T, sep="\t")
 ```
 
-*Modify...*
-Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot). Make sure that block is coded as a factor.  Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
+Check out dataframe; Note that...
+
++ 'potid' and 'bk' columns need to be re-classified as factors
++ 'mivi', 'pavi', 'sobi' have NA values ... If these are pots without that species planted, then these values should be zero. If these are missing values, then the rows need to be excluded
++ there are notes that may mean some rows need to be excluded
 ```{r, echo=FALSE}
-data$total<-data$Mvabund + data$pavi + data$sobi
+#head(data)
+#str(data)
+
+#head(datadic)
+#str(datadic)
+```
+
+
+*Modify structure and remove rows with NAs*
+
+1. Re-classify 'potid' and 'bk' as factors
+```{r, echo=FALSE}
+data$potid<-as.factor(data$potid)
 data$bk<-as.factor(data$bk)
-data$compabund<-data$pavi + data$sobi
-
-head(data) #check out the dataframe
+#str(data)
 ```
 
-*Subset...*
-Subset data based on whether it is a monoculture or mixture pot, also subset by the species identity (in the case of monocultures) or the neighbor treatment (in the case of the mixtures).
+2. Change 'NAs' to 0s in 'mivi', 'pavi', and 'sobi' columns according to the treatment type.  In other words, NA should be changed to 0 if the species' biomass is missing because it wasn't planted there in the first place due to its treatment assignment.
 ```{r, echo=FALSE}
-Empty<-data[data$type=='Empty',]
-Mivi<-data[data$type=='Mivi',]
-Pavi<-data[data$type=='Pavi',]
-Sobi<-data[data$type=='Sobi',]
-CompEmpty<-data[data$type=='CompEmpty',]
-CompPavi<-data[data$type=='CompPavi',]
-CompSobi<-data[data$type=='CompSobi',]
+#Empty trt
+#head(data[data$type=='Empty',])
+data[data$type=='Empty',c('mivi','pavi','sobi')] <- 0
+
+#Mivi trt
+#head(data[data$type=='Mivi',])
+data[data$type=='Mivi',c('pavi','sobi')] <- 0
+
+#Pavi trt
+#head(data[data$type=='Pavi',])
+data[data$type=='Pavi',c('mivi','sobi')] <- 0
+
+#Sobi trt
+#head(data[data$type=='Sobi',])
+data[data$type=='Sobi',c('mivi','pavi')] <- 0
+
+#CompEmpty trt
+#head(data[data$type=='CompEmpty',])
+data[data$type=='CompEmpty',c('pavi','sobi')] <- 0
+
+#CompPavi trt
+#head(data[data$type=='CompPavi',])
+data[data$type=='CompPavi',c('sobi')] <- 0
+
+#CompSobi trt
+#head(data[data$type=='CompSobi',])
+data[data$type=='CompSobi',c('pavi')] <- 0
+
+```
+
+3. Remove rows with an 'NA' in any column (other than 'notes')
+```{r, echo=FALSE}
+firstdatacol<-which(colnames(data)=='mivi')
+lastdatacol<-which(colnames(data)=='notes') - 1
+#sum(is.na(data[,c(firstdatacol:lastdatacol)])) # the number of NAs that need to be removed
+
+removerow<-which(is.na(data$mivi)) # which row is it?
+data<-data[-removerow,] # remove the row
+
+dim(data) # new dataframe dimensions
+```
+
+4. Remove the row with the note about the nh and no outliers
+```{r, echo=FALSE}
+#data[!is.na(data$notes),] # figure out the potid for that row
+
+removerow<-which(data$potid=='145') # which row is it?
+data<-data[-removerow,] # remove the row
+
+dim(data) # new dataframe dimensions
 ```
 
 
-__________________________
+*Calculate aggregate biomass columns*
 
-#1. Calculate the impact of invader presence on soil properties (Si1 - Si1) 
+Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot).  
+Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
+```{r, echo=FALSE}
+data$total <- data$mivi + data$pavi + data$sobi
+data$compabund <- data$pavi + data$sobi
 
-*Look at just one section of the experimental design - the Mv-alone treatments*
+#head(data) #check out the dataframe
+```
+
+
+
+*******************
+
+#2. Create dataframes where y = soil property impact in response to the presence of Mv
+
+*Calculate the impact of invader presence on soil properties (Si1 - Si1)*  
+Start by subsetting the data by neighbor treatment.  
+Look at the No neighbor treatment first
 ```{r, include=FALSE}
 data.alone<-rbind(Empty, Mivi)
 head(data.alone)
