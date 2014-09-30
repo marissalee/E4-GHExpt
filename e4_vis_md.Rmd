@@ -7,12 +7,12 @@ output:
   html_document: default
 ---
 
-*This code needs the following raw data files:* All are located in 'e4DataPackage_092614' folder
+*A. This code needs the following raw data files:* All are located in 'e4DataPackage_092614' folder
 
 1. 'e4_potData.txt'
 2. 'e4_potData_dictionary.txt'
 
-*This code does the following things:*  
+*B. This code does the following things:*  
 
 1. Cleans raw dataset.
 2. Creates dataframes where y = soil property impact to the presence of Mv
@@ -20,7 +20,7 @@ output:
   + Panel rows will be (a) Mv only, (b) Mv + Panicum, (c) Mv + Sorghum
   + Panel cols will be (a) Mv biomass/Relative biomass, (b) Neighbor biomass/Relative biomass, (c) total biomass
 
-*This code produces the following items:*
+*C. This code produces the following items:*
 
 1. Multi-panel figures described above  
 
@@ -28,27 +28,19 @@ output:
 
 *******************
 
-*Load libraries*
-```{r, message=FALSE}
-library(ggplot2)
-```
-
-*******************
-
 #1. Clean raw dataset
 
-*Import data and check it out*  
-Import  
+##Import data and check it out 
 ```{r, echo=FALSE}
-data<-read.table('e4DataPackage_092614/e4_potData.txt',header=T, sep="\t")
-datadic<-read.table('e4DataPackage_092614/e4_potData_dictionary.txt',header=T, sep="\t")
+data<-read.table('e4DataPackage_092614/e4_potData.txt',header=T, sep="\t", stringsAsFactors=F)
+datadic<-read.table('e4DataPackage_092614/e4_potData_dictionary.txt',header=T, sep="\t", stringsAsFactors=F)
 ```
 
-Check out dataframe; Note that...
++ Check out dataframe; Note that...
 
-+ 'potid' and 'bk' columns need to be re-classified as factors
-+ 'mivi', 'pavi', 'sobi' have NA values ... If these are pots without that species planted, then these values should be zero. If these are missing values, then the rows need to be excluded
-+ there are notes that may mean some rows need to be excluded
+    + 'potid' and 'bk' columns need to be re-classified as factors
+    + 'mivi', 'pavi', 'sobi' have NA values ... If these are pots without that species planted, then these values should be zero. If these are missing values, then the rows need to be excluded
+    + there are notes that may mean some rows need to be excluded
 ```{r, echo=FALSE}
 #head(data)
 #str(data)
@@ -58,16 +50,9 @@ Check out dataframe; Note that...
 ```
 
 
-*Modify structure and remove rows with NAs*
+##Remove rows with NAs
 
-1. Re-classify 'potid' and 'bk' as factors
-```{r, echo=FALSE}
-data$potid<-as.factor(data$potid)
-data$bk<-as.factor(data$bk)
-#str(data)
-```
-
-2. Change 'NAs' to 0s in 'mivi', 'pavi', and 'sobi' columns according to the treatment type.  In other words, NA should be changed to 0 if the species' biomass is missing because it wasn't planted there in the first place due to its treatment assignment.
++ Change 'NAs' to 0s in 'mivi', 'pavi', and 'sobi' columns according to the treatment type.  In other words, NA should be changed to 0 if the species' biomass is missing because it wasn't planted there in the first place due to its treatment assignment.
 ```{r, echo=FALSE}
 #Empty trt
 #head(data[data$type=='Empty',])
@@ -99,7 +84,7 @@ data[data$type=='CompSobi',c('pavi')] <- 0
 
 ```
 
-3. Remove rows with an 'NA' in any column (other than 'notes')
++ Remove rows with an 'NA' in any column (other than 'notes')
 ```{r, echo=FALSE}
 firstdatacol<-which(colnames(data)=='mivi')
 lastdatacol<-which(colnames(data)=='notes') - 1
@@ -111,7 +96,7 @@ data<-data[-removerow,] # remove the row
 dim(data) # new dataframe dimensions
 ```
 
-4. Remove the row with the note about the nh and no outliers
++ Remove the row with the note about the nh and no outliers
 ```{r, echo=FALSE}
 #data[!is.na(data$notes),] # figure out the potid for that row
 
@@ -122,10 +107,10 @@ dim(data) # new dataframe dimensions
 ```
 
 
-*Calculate aggregate biomass columns*
+##Calculate aggregate biomass columns
 
-Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot).  
-Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
++ Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot).
++ Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
 ```{r, echo=FALSE}
 data$total <- data$mivi + data$pavi + data$sobi
 data$compabund <- data$pavi + data$sobi
@@ -139,23 +124,159 @@ data$compabund <- data$pavi + data$sobi
 
 #2. Create dataframes where y = soil property impact in response to the presence of Mv
 
-*Calculate the impact of invader presence on soil properties (Si1 - Si1)*  
-Start by subsetting the data by neighbor treatment.  
-Look at the No neighbor treatment first
-```{r, include=FALSE}
-data.alone<-rbind(Empty, Mivi)
-head(data.alone)
-
-#make a column to designate Si0 and Si1_density rows
-data.alone$Si<-rep(NA,length(data.alone$type)) #create the new col
-lastcol<-length(colnames(data.alone)) #save the colnum
-data.alone[which(data.alone$type=='Empty'),lastcol]<-'Si0' #assign val for selected rows
-
-# I stopped here
-
-
-#make a column for monoculture/unplanted categories
-
-
+##Calculate the impact of invader presence on soil properties (Si1 - Si1) and create new df for this info  
++ Start by creating a column to subset the data by neighbor treatment.  
+```{r, echo=FALSE}
+data$ss1 <- rep(NA,dim(data)[1]) # create the new column to hold factors to separate rows by neighbor treatment that excludes 100% Mivi but includes 0% Mivi
+data[data$type=='Empty' | data$type=='CompEmpty', 'ss1'] <- 'E' # populate that column
+data[data$type=='Pavi' | data$type=='CompPavi', 'ss1'] <- 'P'
+data[data$type=='Sobi' | data$type=='CompSobi', 'ss1'] <- 'S'
+data[data$type=='Mivi', 'ss1'] <- 'Mv100'
+#View(data)
 
 ```
+
++ Within each bk * neighbor treatment, subtract the Si0 from each Si1. 
+```{r, echo=FALSE}
+BK <-unique(data$bk) # list of bks to loop through
+e<-0
+
+SS1 <- unique(data$ss1)[-1] # list of ss1s to loop through, exclude Mv100
+f<-0
+
+SCOLS <- colnames(data)[11:17] # list of S columns to loop through
+g<-0
+
+MVTRT <- unique(data$mvtrt)[c(-1,-6)] # list of mvtrts to loop through as Si1 values, exclude mvtrt = 6 and 0
+h<-0
+
+# ititialize lists 
+mylist<-list() # to store results 
+mylist.check<-list() # to check the looping stuff
+
+# define column names
+storecols<-c('s1pid', 's0pid', 'scol', 's1', 's0', 'bk','julydate','type','comptrt','mvtrt','mivi','compabund','ss1')
+checkcols<-c('iter','s1row','s1col','s0row','s0col')
+
+for (e in 1:length(BK)){ # 1. loop through each bk, for the current bk...
+  for (f in 1:length(SS1)){ # 2. loop through each ss1, for the current ss1....
+    ss<-data[data$bk == BK[e] & data$ss1 == SS1[f], ] # 3. Subset data by bk * ss1
+    for (g in 1:length(SCOLS)){ # 2. loop through each S column (nhdi, nodi, etc), for the current S column....
+      for (h in 1:length(MVTRT)){ # 3. loop through each S column value associated with mvtrt 1,2,4,5, for the current value...
+        
+        # check the looping stuff
+        iter <- paste(BK[e], SS1[f], SCOLS[g], MVTRT[h], sep='_')
+        s1dim <- dim(ss[ss$mvtrt == MVTRT[h], ])
+        s0dim <- dim(ss[ss$mvtrt == 0, ])
+        mydata.check <- c(iter, s1dim, s0dim) # make a vector to store that data
+        mylist.check [[as.character(iter)]] <- mydata.check # put that vector into the initalized list and at the same time, give it a unique name (as.character(iter))
+        
+        # 4. assign this info:
+        
+        if(s1dim[1] == 1){
+          # 4.1 potid for Si1 and associated info
+          s1pid<-ss[ss$mvtrt == MVTRT[h], 'potid']
+          s1info<-ss[ss$mvtrt == MVTRT[h], c('bk','julydate','type','comptrt','mvtrt','mivi','compabund','ss1')] # 8 elements
+          
+          # 4.2 s1 value associated with mvtrt (1-5)
+          s1 <- ss[ss$mvtrt == MVTRT[h], SCOLS[g]]
+        } else{
+          # 4.1 potid for Si1
+          s1pid<-NA
+          s1info<-rep(NA,8)
+          
+          # 4.2 s1 value associated with mvtrt (1-5)
+          s1<-NA
+        }
+        
+        # 4.3 potid Si0 and comma separated Si1,Si0 potids
+        s0pid<-ss[ss$mvtrt==0, 'potid']
+        
+        # 4.4 S column name (e.g. nhdi)
+        scol<-SCOLS[g] 
+        
+        # 4.5 s0 value associated with mvtrt = 0, calc s1 - s0
+        s0 <- ss[ss$mvtrt == 0, SCOLS[g]]
+        
+        # 5. store the assigned info in a row, add the new row to previous rows
+        mydata <- c(s1pid, s0pid, scol, s1, s0, s1info) # 14 cells, make a vector to store that data
+        mylist [[as.character(iter)]] <- mydata # put that vector into the initalized list and at the same time, give it a unique name (as.character(iter))
+        
+      }
+    }
+  }
+}
+
+#Look at the dimensions of s1 and s0 through each unique iteration to make sure the loops worked
+finaldata.check <- do.call(rbind, mylist.check)
+colnames(finaldata.check) <- checkcols
+
+#unique(finaldata.check[,'s1row']) # there are some iterations with 0 s1rows
+messedup<-which(finaldata.check[,'s1row']==0)
+#finaldata.check[messedup,] 
+
+#ok, so I am adding an IF statement that says if s1=1, then do the normal stuff, if not, then (1) insert NA in s1 and s1-s0 cells and (2) print a warning.
+#now, look at the results
+finaldata <- do.call(rbind, mylist)
+colnames(finaldata) <- storecols
+#View(finaldata)
+
+```
+
++ Re-structure the resulting dataset
+```{r, echo=FALSE}
+#str(finaldata)
+
+ul<-unlist(finaldata, use.names=F)
+df<-data.frame(matrix(ul, ncol = length(storecols), byrow=F), stringsAsFactors=F)
+colnames(df)<-storecols
+#str(df)
+
+#convert potids from character strings to numbers
+df$s1pid<-as.numeric(df$s1pid)
+df$s0pid<-as.numeric(df$s0pid)
+df$bk<-as.numeric(df$bk)
+df$julydate<-as.numeric(df$julydate)
+#str(df)
+
+#convert each to the appropriate form
+df$s1pid<-as.factor(df$s1pid)
+df$s0pid<-as.factor(df$s0pid)
+df$scol<-as.factor(df$scol)
+df$s1<-as.numeric(df$s1)
+df$s0<-as.numeric(df$s0)
+df$bk<-as.factor(df$bk)
+df$julydate<-as.factor(df$julydate)
+df$type<-as.factor(df$type)
+df$comptrt<-as.factor(df$comptrt)
+df$mvtrt<-as.factor(df$mvtrt)
+df$mivi<-as.numeric(df$mivi)
+df$compabund<-as.numeric(df$compabund)
+df$ss1<-as.factor(df$ss1)
+#str(df)
+
+#head(df) #looks good
+```
+
++ Order df by s1pid and remove rows with s1pid == NA
+```{r, echo=FALSE}
+df2<-df[!is.na(df$s1pid),]
+#head(df2)
+```
+
++ Finally, subtract s1 - s0, populate s1s0 column with the resulting values.  Re-name the dataframe.
+```{r, echo=FALSE}
+df2$s1s0 <- df2$s1 - df2$s0
+datas <- df2
+#View(datas)
+```
+
+
+
+*******************
+
+#3. Produce 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
+
+
+
+
