@@ -6,276 +6,582 @@ output:
   pdf_document: default
   html_document: default
 ---
+*Filename: e4_vis_md.Rmd'*
 
-*A. This code needs the following raw data files:* All are located in 'e4DataPackage_092614' folder
+*A. This code needs the following files:*  
 
-1. 'e4_potData.txt'
-2. 'e4_potData_dictionary.txt'
+1. 'e4_potData.txt' in 'e4DataPackage_092614' folder
+2. 'e4_potData_dictionary.txt' in 'e4DataPackage_092614' folder
+3. 'e4_cleanCode.R' in 'e4CodePackage_100614' folder
+4. 'e4_calcsiCode.R' in 'e4CodePackage_100614' folder
 
 *B. This code does the following things:*  
 
-1. Cleans raw dataset.
-2. Creates dataframes where y = soil property impact to the presence of Mv
-3. Produces 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
-  + Panel rows will be (a) Mv only, (b) Mv + Panicum, (c) Mv + Sorghum
-  + Panel cols will be (a) Mv biomass/Relative biomass, (b) Neighbor biomass/Relative biomass, (c) total biomass
+1. Clean raw dataset (run external code)
+2. Plot
+    + Fig2. Mv density treatment vs plant biomass
+    + Fig3. Monoculture type vs soil meas at harvest (s1)
+    + Fig4. Mixture plant biomass vs soil meas (s1) or soil meas diff relative to the baseline (s1s0)
+
+4. Fit models
+    + A. To predict s1s0 using mivi biomass, compabund, and total
+    + B. To predict s1 using mivi biomass, compabund, and total
 
 *C. This code produces the following items:*
 
-1. Multi-panel figures described above  
-
+1. NA 
 
 
 *******************
 
-#1. Clean raw dataset
-
-##Import data and check it out 
-```{r, echo=FALSE}
-data<-read.table('e4DataPackage_092614/e4_potData.txt',header=T, sep="\t", stringsAsFactors=F)
-datadic<-read.table('e4DataPackage_092614/e4_potData_dictionary.txt',header=T, sep="\t", stringsAsFactors=F)
-```
-
-+ Check out dataframe; Note that...
-
-    + 'potid' and 'bk' columns need to be re-classified as factors
-    + 'mivi', 'pavi', 'sobi' have NA values ... If these are pots without that species planted, then these values should be zero. If these are missing values, then the rows need to be excluded
-    + there are notes that may mean some rows need to be excluded
-```{r, echo=FALSE}
-#head(data)
+#1. Clean raw dataset (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_cleanCode.R')
 #str(data)
-
-#head(datadic)
-#str(datadic)
 ```
-
-
-##Remove rows with NAs
-
-+ Change 'NAs' to 0s in 'mivi', 'pavi', and 'sobi' columns according to the treatment type.  In other words, NA should be changed to 0 if the species' biomass is missing because it wasn't planted there in the first place due to its treatment assignment.
-```{r, echo=FALSE}
-#Empty trt
-#head(data[data$type=='Empty',])
-data[data$type=='Empty',c('mivi','pavi','sobi')] <- 0
-
-#Mivi trt
-#head(data[data$type=='Mivi',])
-data[data$type=='Mivi',c('pavi','sobi')] <- 0
-
-#Pavi trt
-#head(data[data$type=='Pavi',])
-data[data$type=='Pavi',c('mivi','sobi')] <- 0
-
-#Sobi trt
-#head(data[data$type=='Sobi',])
-data[data$type=='Sobi',c('mivi','pavi')] <- 0
-
-#CompEmpty trt
-#head(data[data$type=='CompEmpty',])
-data[data$type=='CompEmpty',c('pavi','sobi')] <- 0
-
-#CompPavi trt
-#head(data[data$type=='CompPavi',])
-data[data$type=='CompPavi',c('sobi')] <- 0
-
-#CompSobi trt
-#head(data[data$type=='CompSobi',])
-data[data$type=='CompSobi',c('pavi')] <- 0
-
-```
-
-+ Remove rows with an 'NA' in any column (other than 'notes')
-```{r, echo=FALSE}
-firstdatacol<-which(colnames(data)=='mivi')
-lastdatacol<-which(colnames(data)=='notes') - 1
-#sum(is.na(data[,c(firstdatacol:lastdatacol)])) # the number of NAs that need to be removed
-
-removerow<-which(is.na(data$mivi)) # which row is it?
-data<-data[-removerow,] # remove the row
-
-dim(data) # new dataframe dimensions
-```
-
-+ Remove the row with the note about the nh and no outliers
-```{r, echo=FALSE}
-#data[!is.na(data$notes),] # figure out the potid for that row
-
-removerow<-which(data$potid=='145') # which row is it?
-data<-data[-removerow,] # remove the row
-
-dim(data) # new dataframe dimensions
-```
-
-
-##Calculate aggregate biomass columns
-
-+ Create a total aboveground biomass column by adding Microstegium biomass, Panicum biomass, Sorghum biomass per observation (pot).
-+ Create 'compabund' (aka Neighbor abundance) column by adding Panicum biomass and Sorghum biomass per observation (pot).
-```{r, echo=FALSE}
-data$total <- data$mivi + data$pavi + data$sobi
-data$compabund <- data$pavi + data$sobi
-
-#head(data) #check out the dataframe
-```
-
-
 
 *******************
 
-#2. Create dataframes where y = soil property impact in response to the presence of Mv
+#2. Plot  
 
-##Calculate the impact of invader presence on soil properties (Si1 - Si1) and create new df for this info  
-+ Start by creating a column to subset the data by neighbor treatment.  
-```{r, echo=FALSE}
-data$ss1 <- rep(NA,dim(data)[1]) # create the new column to hold factors to separate rows by neighbor treatment that excludes 100% Mivi but includes 0% Mivi
-data[data$type=='Empty' | data$type=='CompEmpty', 'ss1'] <- 'E' # populate that column
-data[data$type=='Pavi' | data$type=='CompPavi', 'ss1'] <- 'P'
-data[data$type=='Sobi' | data$type=='CompSobi', 'ss1'] <- 'S'
-data[data$type=='Mivi', 'ss1'] <- 'Mv100'
-#View(data)
++ Load libraries  
+```{r, echo=TRUE}
+library(ggplot2)
+library(reshape2)
+library(grid)
+library(gridExtra)
 
-```
-
-+ Within each bk * neighbor treatment, subtract the Si0 from each Si1. 
-```{r, echo=FALSE}
-BK <-unique(data$bk) # list of bks to loop through
-e<-0
-
-SS1 <- unique(data$ss1)[-1] # list of ss1s to loop through, exclude Mv100
-f<-0
-
-SCOLS <- colnames(data)[11:17] # list of S columns to loop through
-g<-0
-
-MVTRT <- unique(data$mvtrt)[c(-1,-6)] # list of mvtrts to loop through as Si1 values, exclude mvtrt = 6 and 0
-h<-0
-
-# ititialize lists 
-mylist<-list() # to store results 
-mylist.check<-list() # to check the looping stuff
-
-# define column names
-storecols<-c('s1pid', 's0pid', 'scol', 's1', 's0', 'bk','julydate','type','comptrt','mvtrt','mivi','compabund','ss1')
-checkcols<-c('iter','s1row','s1col','s0row','s0col')
-
-for (e in 1:length(BK)){ # 1. loop through each bk, for the current bk...
-  for (f in 1:length(SS1)){ # 2. loop through each ss1, for the current ss1....
-    ss<-data[data$bk == BK[e] & data$ss1 == SS1[f], ] # 3. Subset data by bk * ss1
-    for (g in 1:length(SCOLS)){ # 2. loop through each S column (nhdi, nodi, etc), for the current S column....
-      for (h in 1:length(MVTRT)){ # 3. loop through each S column value associated with mvtrt 1,2,4,5, for the current value...
-        
-        # check the looping stuff
-        iter <- paste(BK[e], SS1[f], SCOLS[g], MVTRT[h], sep='_')
-        s1dim <- dim(ss[ss$mvtrt == MVTRT[h], ])
-        s0dim <- dim(ss[ss$mvtrt == 0, ])
-        mydata.check <- c(iter, s1dim, s0dim) # make a vector to store that data
-        mylist.check [[as.character(iter)]] <- mydata.check # put that vector into the initalized list and at the same time, give it a unique name (as.character(iter))
-        
-        # 4. assign this info:
-        
-        if(s1dim[1] == 1){
-          # 4.1 potid for Si1 and associated info
-          s1pid<-ss[ss$mvtrt == MVTRT[h], 'potid']
-          s1info<-ss[ss$mvtrt == MVTRT[h], c('bk','julydate','type','comptrt','mvtrt','mivi','compabund','ss1')] # 8 elements
-          
-          # 4.2 s1 value associated with mvtrt (1-5)
-          s1 <- ss[ss$mvtrt == MVTRT[h], SCOLS[g]]
-        } else{
-          # 4.1 potid for Si1
-          s1pid<-NA
-          s1info<-rep(NA,8)
-          
-          # 4.2 s1 value associated with mvtrt (1-5)
-          s1<-NA
-        }
-        
-        # 4.3 potid Si0 and comma separated Si1,Si0 potids
-        s0pid<-ss[ss$mvtrt==0, 'potid']
-        
-        # 4.4 S column name (e.g. nhdi)
-        scol<-SCOLS[g] 
-        
-        # 4.5 s0 value associated with mvtrt = 0, calc s1 - s0
-        s0 <- ss[ss$mvtrt == 0, SCOLS[g]]
-        
-        # 5. store the assigned info in a row, add the new row to previous rows
-        mydata <- c(s1pid, s0pid, scol, s1, s0, s1info) # 14 cells, make a vector to store that data
-        mylist [[as.character(iter)]] <- mydata # put that vector into the initalized list and at the same time, give it a unique name (as.character(iter))
-        
-      }
-    }
-  }
-}
-
-#Look at the dimensions of s1 and s0 through each unique iteration to make sure the loops worked
-finaldata.check <- do.call(rbind, mylist.check)
-colnames(finaldata.check) <- checkcols
-
-#unique(finaldata.check[,'s1row']) # there are some iterations with 0 s1rows
-messedup<-which(finaldata.check[,'s1row']==0)
-#finaldata.check[messedup,] 
-
-#ok, so I am adding an IF statement that says if s1=1, then do the normal stuff, if not, then (1) insert NA in s1 and s1-s0 cells and (2) print a warning.
-#now, look at the results
-finaldata <- do.call(rbind, mylist)
-colnames(finaldata) <- storecols
-#View(finaldata)
+mytheme <- theme_bw(base_size = 16, base_family = "Helvetica") +
+        theme(panel.border = element_rect(colour = "black", size=1), 
+              axis.line = element_line(colour = "black"), 
+              panel.grid.major = element_blank(), 
+              panel.grid.minor = element_blank(), 
+              strip.background = element_rect(colour = "black", size = 0.5), 
+              legend.key = element_blank(), # no boxes around legend
+              plot.title=element_text(hjust=-0.1, vjust=2, face='bold'), # style and position of the panel label
+              axis.title.x=element_text(lineheight=2))
 
 ```
 
-+ Re-structure the resulting dataset
+
+##Fig2. Mv density treatment vs plant biomass
++ Calculate the relative Mv abundance, add it as a column  
 ```{r, echo=FALSE}
-#str(finaldata)
+#str(data)
+data$relmivi <- (data$mivi / data$total) * 100
 
-ul<-unlist(finaldata, use.names=F)
-df<-data.frame(matrix(ul, ncol = length(storecols), byrow=F), stringsAsFactors=F)
-colnames(df)<-storecols
-#str(df)
+# Force pots with mivi = 0 and total = 0 to have relmivi = 0 too
+tmp<-data[data$mivi == 0,]
+#View(tmp)
+len<-length(data[data$mivi == 0,'relmivi'])
+data[data$mivi == 0,'relmivi'] <- rep(0,30)
 
-#convert potids from character strings to numbers
-df$s1pid<-as.numeric(df$s1pid)
-df$s0pid<-as.numeric(df$s0pid)
-df$bk<-as.numeric(df$bk)
-df$julydate<-as.numeric(df$julydate)
-#str(df)
-
-#convert each to the appropriate form
-df$s1pid<-as.factor(df$s1pid)
-df$s0pid<-as.factor(df$s0pid)
-df$scol<-as.factor(df$scol)
-df$s1<-as.numeric(df$s1)
-df$s0<-as.numeric(df$s0)
-df$bk<-as.factor(df$bk)
-df$julydate<-as.factor(df$julydate)
-df$type<-as.factor(df$type)
-df$comptrt<-as.factor(df$comptrt)
-df$mvtrt<-as.factor(df$mvtrt)
-df$mivi<-as.numeric(df$mivi)
-df$compabund<-as.numeric(df$compabund)
-df$ss1<-as.factor(df$ss1)
-#str(df)
-
-#head(df) #looks good
 ```
 
-+ Order df by s1pid and remove rows with s1pid == NA
++ Remove unnecessary cols
 ```{r, echo=FALSE}
-df2<-df[!is.na(df$s1pid),]
-#head(df2)
+#str(data)
+removecols<-c('bk','julydate',
+              'pavi','sobi','weed',
+              'nhdi','nodi','totdi','ammonifd','nitrifd','minzd','soilmoi',
+              'notes')
+indx<-colnames(data) %in% removecols
+data.r<-data[,!indx]
+
+colnames(data.r)
+ru.data<- data.frame(potid=data.r$potid,
+                     type=data.r$type,
+                     comptrt=data.r$comptrt,
+                     mvtrt=data.r$mvtrt,
+                     relmivi=data.r$relmivi,
+                     mivi=data.r$mivi,
+                     compabund=data.r$compabund,
+                     total=data.r$total)
+data2.1 <- ru.data
+#View(data2.1)
 ```
 
-+ Finally, subtract s1 - s0, populate s1s0 column with the resulting values.  Re-name the dataframe.
++ Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
 ```{r, echo=FALSE}
-df2$s1s0 <- df2$s1 - df2$s0
-datas <- df2
-#View(datas)
+data2.2 <- melt(data2.1, measure.vars=c('relmivi','mivi','compabund','total'), id.vars=c('potid','type','comptrt','mvtrt'))
+
+colnames(data2.2)[5]<-'biommeas'
+colnames(data2.2)[6]<-'biomval'
+
+# check it out and make sure that the structure is correct
+#View(data3)
+#str(data3)
+data2.2$potid<-as.factor(data2.2$potid)
+data2.2$mvtrt<-as.factor(data2.2$mvtrt)
+#str(data2.2)
+
+```
+
++ PANEL A: Plot Mv treatment vs biomass measures
+```{r, echo=FALSE}
+#subset data
+sub<-subset(data2.2, biommeas == "relmivi")
+
+#set up plot
+fig2a <- ggplot(sub, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt)) + 
+  mytheme +
+  ylab("M.v. relative\n abundance (%)") + 
+  xlab("M.v. treatment") + 
+  ggtitle('a') +
+  stat_summary(aes(shape=comptrt, colour=comptrt),fun.y = mean, geom='point', size=4) +
+  stat_summary(aes(colour=comptrt), fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
+  stat_summary(aes(colour=comptrt), fun.y = mean, geom='line') +
+  scale_colour_manual(values=c("grey", "black", "black"), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  scale_shape_manual(values=c(16, 17, 15), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  coord_cartesian(ylim=c(-5,105)) + scale_y_continuous(breaks=seq(0, 100, 20)) +
+  coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
+
+#fig2a
+
+#fig2a + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
+
+ggsave(filename="fig2a.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ PANEL B: Plot Mv treatment vs species biomass
+```{r, echo=FALSE}
+#subset data
+sub2<-subset(data2.2, biommeas != "relmivi")
+sub3<-subset(sub2, biommeas != "total")
+
+#set up plot
+fig2b <- ggplot(sub3, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt, linetype=biommeas)) +
+  mytheme +
+  ylab("Species' dry above-\nground plant biomass (g)") + 
+  xlab("M.v. treatment") +
+  ggtitle('b') +
+  stat_summary(mapping=aes(shape=comptrt, colour=comptrt), fun.y = mean, geom='point', size=4) +
+  stat_summary(mapping=aes(colour=comptrt, linetype=biommeas), fun.y = mean, geom='line', size=1) + 
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2, size=1) +
+  scale_colour_manual(values=c("grey", "black", "black"), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  scale_shape_manual(values=c(16, 17, 15), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  scale_linetype_manual(values = c("solid","dotdash"),
+                        name="Species",
+                        breaks=c("mivi","compabund"),
+                        labels=c("M.v.", "Neighbor sp.")) +
+  coord_cartesian(ylim=c(-5,105)) + scale_y_continuous(breaks=seq(0, 100, 20)) +
+  coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
+
+#fig2b
+
+#fig2b + geom_jitter(position = position_jitter(w = 0.1, h = 0))
+
+ggsave(filename="fig2b.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ PANEL C: Plot Mv treatment vs total biomass
+```{r, echo=FALSE}
+#subset data
+sub4<-subset(data2.2, biommeas == "total")
+
+#set up plot
+fig2c <- ggplot(sub4, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt)) +
+  mytheme +
+  ylab("Total dry above-\nground plant biomass (g)") + 
+  xlab("M.v. treatment") +
+  ggtitle('c') +
+  stat_summary(mapping=aes(shape=comptrt, colour=comptrt), fun.y = mean, geom='point', size=4) +
+  stat_summary(mapping=aes(colour=comptrt), fun.y = mean, geom='line', size=1) + 
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2, size=1) +
+  scale_colour_manual(values=c("grey", "black", "black"), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  scale_shape_manual(values=c(16, 17, 15), 
+                       name="Neighbor\ntreatment",
+                       breaks=c("N", "P", "S"),
+                       labels=c("No Neighbor", "Panicum", "Sorghum")) +
+  coord_cartesian(ylim=c(-5,105)) + scale_y_continuous(breaks=seq(0, 100, 20)) +
+  coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
+
+#fig2c
+  
+#fig2c + geom_jitter(position = position_jitter(w = 0.1, h = 0))
+
+ggsave(filename="fig2c.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ Figure2, ALL PANELS
+```{r, echo=FALSE}
+#check out the individual panels
+#fig2a
+#fig2b #use this legend for all 3 panels
+#fig2c
+
+#FUNCTION TO ASSIGN A PLOT'S LEGEND AS A GROB OBJECT
+g_legend<-function(p){
+tmp <- ggplotGrob(p)
+leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+legend <- tmp$grobs[[leg]]
+return(legend)}
+
+#pick the main legend for all panels
+legend <- g_legend(fig2b)
+lwidth <- sum(legend$width)
+
+#arrange the grob objects
+ag<-arrangeGrob(fig2a + theme(legend.position="none"),
+                fig2b + theme(legend.position="none"),
+                fig2c + theme(legend.position="none")
+                )
+finalg<-arrangeGrob(ag, 
+             legend, 
+             widths=unit.c(unit(1, "npc") - lwidth, lwidth), 
+             nrow=1)
+finalg
+
+ggsave(filename="fig2.pdf", plot=finalg, width = 8, height = 8, units = 'in') #save the plot and define its size
 ```
 
 
+##Fig3. Monoculture type vs soil measure at harvset (s1)
+
++ Calculate 'Si', the soil property impact in response to the presence of Mv and create a new dataframe with this info (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_calcsiCode.R')
+#str(datas)
+```
+
++ Remove unnecessary cols  
+```{r, echo=FALSE}
+#str(data)
+removecols<-c('bk','julydate',
+              'pavi','sobi','weed','relmivi','compabund',
+              'notes')
+indx<-colnames(data) %in% removecols
+data.r<-data[,!indx]
+
+colnames(data.r)
+ru.data<- data.frame(potid=data.r$potid,
+                     type=data.r$type,
+                     comptrt=data.r$comptrt,
+                     mvtrt=data.r$mvtrt,
+                     total=data.r$total,
+                     nhdi=data.r$nhdi,
+                     nodi=data.r$nodi,
+                     totdi=data.r$totdi,
+                     ammonifd=data.r$ammonifd,
+                     nitrifd=data.r$nitrifd,
+                     minzd=data.r$minzd,
+                     soilmoi=data.r$soilmoi)
+data3.1 <- ru.data
+#View(data3.1)
+```
+
++ Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
+```{r, echo=FALSE}
+data3.2 <- melt(data3.1, measure.vars=c('nhdi','nodi','totdi','ammonifd','nitrifd','minzd','soilmoi'), id.vars=c('potid','type','comptrt','mvtrt','total'))
+
+#View(data3.2)
+colnames(data3.2)
+
+colnames(data3.2)[6]<-'soilmeas'
+colnames(data3.2)[7]<-'soilval'
+```
+
++ ALL: Plot monoculture type vs soil measures (s1) in facets
+```{r, echo=FALSE}
+data3.2$soilmeas <- factor(data3.2$soilmeas, levels = c('nhdi', 'nodi', 'totdi', 'ammonifd', 'nitrifd','minzd','soilmoi'))
+data3.2$type <- factor(data3.2$type, levels = c('Empty', 'Mivi', 'Pavi', 'Sobi', 'CompEmpty', 'CompSobi', 'CompPavi'))
+        
+sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+#sub2<-subset(sub1, soilmeas == 'nodi' | soilmeas == 'nitrifd' | soilmeas == 'soilmoi')
+
+#do this in panels, not facets...
+fig3.facets <- ggplot(sub1, aes(x=type, y=soilval)) + 
+  mytheme +
+  ylab('Soil measurement') +
+  xlab('Monoculture type') +
+  facet_grid(soilmeas ~ ., scales='free') +
+  stat_summary(fun.y = mean, geom='point', size=4) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2)
+
+fig3.facets
+
+```
+
++ PANEL A: Plot monoculture type vs total biomass
+```{r, echo=TRUE}
+sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+sub2<-subset(sub1, soilmeas == 'nodi') # this doesn't really matter, as long as there is 1 unique total value
+
+#set up plot
+fig3a <- ggplot(sub2, aes(x=type, y=total)) + 
+  mytheme +
+  ylab("Total dry above-\nground plant biomass (g)") + 
+  xlab("Monoculture type") + 
+  ggtitle('a') +
+  stat_summary(fun.y = mean, geom='point', size=4) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
+  coord_cartesian(ylim=c(-5,95)) + scale_y_continuous(breaks=seq(0, 100, 20)) 
+#fig3a
+#fig3a + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
+ggsave(filename="fig3a.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ PANEL B: Plot monoculture type vs nodi
+```{r, echo=TRUE}
+sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+sub2<-subset(sub1, soilmeas == 'nodi')
+
+#set up plot
+fig3b <- ggplot(sub2, aes(x=type, y=soilval)) + 
+  mytheme +
+  ylab("Nitrate (ugN/G)") + 
+  xlab("Monoculture type") + 
+  ggtitle('b') +
+  stat_summary(fun.y = mean, geom='point', size=4) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
+  coord_cartesian(ylim=c(-5,95)) + scale_y_continuous(breaks=seq(0, 100, 20)) 
+#fig3b
+#fig3b + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
+ggsave(filename="fig3b.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ PANEL C: Plot monoculture type vs nitrifd
+```{r, echo=TRUE}
+sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+sub2<-subset(sub1, soilmeas == 'nitrifd')
+
+#set up plot
+fig3c <- ggplot(sub2, aes(x=type, y=soilval)) + 
+  mytheme +
+  ylab("Net nitrification (ugN/G*d)") + 
+  xlab("Monoculture type") + 
+  ggtitle('c') +
+  stat_summary(fun.y = mean, geom='point', size=4) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
+  coord_cartesian(ylim=c(-2.5,3.5)) + scale_y_continuous(breaks=seq(-3, 4, 1))
+#fig3c
+#fig3b + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
+ggsave(filename="fig3c.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ PANEL D: Plot monoculture type vs soilmoi
+```{r, echo=TRUE}
+sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+sub2<-subset(sub1, soilmeas == 'soilmoi')
+
+#set up plot
+fig3d <- ggplot(sub2, aes(x=type, y=soilval)) + 
+  mytheme +
+  ylab("Soil moisture (%)") + 
+  xlab("Monoculture type") + 
+  ggtitle('d') +
+  stat_summary(fun.y = mean, geom='point', size=4) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
+  coord_cartesian(ylim=c(60,87)) + scale_y_continuous(breaks=seq(0, 100, 5))
+#fig3d
+#fig3d + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
+ggsave(filename="fig3d.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+
+```
+
++ Figure3, ALL PANELS
+```{r, echo=FALSE}
+#check out the individual panels
+#fig3a
+#fig3b
+#fig3c
+#fig3d
+
+#arrange the grob objects
+ag<-arrangeGrob(fig3a,
+                fig3b,
+                fig3c,
+                fig3d)
+finalg<-arrangeGrob(ag) #don't need to add a universal legend, so just leave this alone.
+finalg
+
+#could consider stacking these panels into 1 column, but then would need to mess around with the x axis so that they all have the same x axis.
+
+ggsave(filename="fig3.pdf", plot=finalg, width = 6, height = 12, units = 'in') #save the plot and define its size
+```
+
+
+
+##Fig4. Mixture plant biomass vs soil measure (s1) or soil measure difference relative to the baseline (s1s0) 
+
++ Remove unnecessary cols  
+```{r, echo=FALSE}
+#str(datas)
+removecols<-c('s0pid','s0','bk','julydate','type','ss1')
+indx<-colnames(datas) %in% removecols
+datas.r<-datas[,!indx]
+
+#colnames(datas.r)
+ru.datas<- data.frame(s1pid=datas.r$s1pid,
+           comptrt=datas.r$comptrt,
+           mvtrt=datas.r$mvtrt,
+           mivi=datas.r$mivi,
+           compabund=datas.r$compabund,
+           total=datas.r$total,
+           soilmeas=datas.r$scol,
+           s1=datas.r$s1,
+           s1s0=datas.r$s1s0)
+
+data4.1 <- ru.datas
+#View(data4)
+```
+
++ Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
+```{r, echo=FALSE}
+data4.2 <- melt(data4.1, measure.vars=c('mivi','compabund','total'), id.vars=c('s1pid','comptrt','mvtrt','soilmeas','s1','s1s0'))
+#View(data4.2)
+
+colnames(data4.2)[7]<-'biommeas'
+colnames(data4.2)[8]<-'biomval'
+View(data4.2)
+```
+
++ Plots where y = S1-S0  
+```{r, echo=FALSE}
+# reorder the factors within soilmeas
+data4.2$soilmeas <- factor(data4.2$soilmeas,
+         levels = c("nhdi", "nodi", "totdi", "ammonifd", "nitrifd","minzd","soilmoi"))
+
+# For Mixed pots, plot biomval (mivi, compabund, total) vs s1s0
+sub1<-subset(data4.2, soilmeas=="nodi" | soilmeas == "nitrifd" | soilmeas=="soilmoi")
+sub2<-subset(sub1, comptrt == "P" | comptrt == "S")
+
+p.s1s0.comp <- ggplot(sub2, aes(x=biomval, y=s1s0, color=comptrt, shape=mvtrt)) + 
+  facet_grid(biommeas ~ soilmeas, scales='free_x') +
+  geom_abline(intercept=0, slope=0, lty=2) +
+  theme_bw()
+p.s1s0.comp + geom_smooth(aes(group=comptrt), method='lm', se=T) + geom_point() 
+
+# For Mivi-only pots, plot biomval (mivi) vs s1s0
+sub1<-subset(datas3, soilmeas=="nodi" | soilmeas == "nitrifd" | soilmeas=="soilmoi")
+sub2<-subset(sub1, comptrt == "N")
+sub3<-subset(sub2, biommeas == "mivi")
+
+p.s1s0.mivi <- ggplot(sub3, aes(x=biomval, y=s1s0, shape=as.integer(as.character(mvtrt)))) + 
+  facet_grid(. ~ soilmeas, scales='free_x') +
+  geom_abline(intercept=0, slope=0, lty=2) +
+  theme_bw()
+p.s1s0.mivi + geom_smooth(aes(group=comptrt),method='lm', se=T) + geom_point() 
+
+```
+
++ Plots where y = S1  
+```{r, echo=FALSE}
+
+# For Mixed pots, plot biomval (mivi, compabund, total) vs s1
+sub1<-subset(datas3, soilmeas=="nodi" | soilmeas == "nitrifd" | soilmeas=="soilmoi")
+sub2<-subset(sub1, comptrt == "P" | comptrt == "S")
+
+p.s1.comp <- ggplot(sub2, aes(x=biomval, y=s1, color=comptrt, shape=as.integer(as.character(mvtrt)))) + 
+  facet_grid(biommeas ~ soilmeas, scales='free_x') +
+  geom_abline(intercept=0, slope=0, lty=2) +
+  theme_bw()
+p.s1.comp + geom_smooth(aes(group=comptrt), method='lm', se=T) + geom_point() 
+
+# For Mivi-only pots, plot biomval (mivi) vs s1s0
+sub1<-subset(datas3, soilmeas=="nodi" | soilmeas == "nitrifd" | soilmeas=="soilmoi")
+sub2<-subset(sub1, comptrt == "N")
+sub3<-subset(sub2, biommeas == "mivi")
+
+p.s1.mivi <- ggplot(sub3, aes(x=biomval, y=s1, shape=as.integer(as.character(mvtrt)))) + 
+  facet_grid(. ~ soilmeas, scales='free_x') +
+  geom_abline(intercept=0, slope=0, lty=2) +
+  theme_bw()
+p.s1.mivi + geom_smooth(aes(group=comptrt),method='lm', se=T) + geom_point() 
+
+```
 
 *******************
 
-#3. Produce 1 multipanel figure for each soil property impact (soil moisture, nitrate, nitrification...others). 
+#3. Fit models 
+
+##A. To predict s1s0 using mivi biomass, compabund, and total
++ Set up model fxns (run external code)  
+```{r, echo=TRUE}
+source('e4CodePackage_100614/e4_fitmodCode.R')
+#ModFxn1
+#ModFxn2
+#ModFxn3
+```
++ Set up generic fxn to pull out info from each fitted model 
++ Fit the models  
++ Organize fitted model results into tables; view the fitted model results
++ Significant model terms
+
+Model 1. s1s0 = (mivi * beta)  
+```{r,echo=FALSE}
+#dim(modl1)
+PvalSumm(modl1, 0.1)
+```
+  
+Model 2. s1s0 = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
+```{r,echo=FALSE}
+#dim(modl2)
+PvalSumm(modl2, 0.1)
+```
+  
+Model 3. s1s0 = (total * beta)  
+```{r,echo=FALSE}
+#dim(modl3)
+PvalSumm(modl3, 0.1)
+```
+
+
+##B. To predict s1 using mivi biomass, compabund, and total
++ Set up model fxns (run external code ... THIS NEEDS TO BE ADDED)  
+```{r, echo=TRUE}
+# source('e4CodePackage_100614/e4_fitmodCode.R') #this was already loaded above...
+#ModFxn1
+#ModFxn2
+#ModFxn3
+```
++ Set up generic fxn to pull out info from each fitted model 
++ Fit the models  
++ Organize fitted model results into tables; view the fitted model results
++ Significant model terms
+
+Model 1. s1s0 = (mivi * beta)  
+```{r,echo=FALSE}
+# #dim(modl1)
+# PvalSumm(modl1, 0.1)
+```
+  
+Model 2. s1s0 = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
+```{r,echo=FALSE}
+# #dim(modl2)
+# PvalSumm(modl2, 0.1)
+```
+  
+Model 3. s1s0 = (total * beta)  
+```{r,echo=FALSE}
+# #dim(modl3)
+# PvalSumm(modl3, 0.1)
+```
+
+
+
+
 
 
 
