@@ -105,9 +105,9 @@ fig3<-arrangeGrob(tmp,
                   widths=unit.c(unit(1, "npc") - lwidth, lwidth), 
                   nrow=1)
 #fig3
+ggsave(filename="fig3.pdf", plot=fig3, width = 10, height = 12, units = 'in') #save the plot and define its size
 
-ggsave(filename="fig3.pdf", plot=fig3, width = 6, height = 12, units = 'in') #save the plot and define its size
-
+data3 <- data3.2
 
 
 

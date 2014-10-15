@@ -82,7 +82,7 @@ fig2a <- ggplot(sub, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=co
   coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
 #fig2a
 #fig2a + geom_jitter(position = position_jitter(w = 0.1, h = 0)) #show the raw data points
-ggsave(filename="fig2a.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+#ggsave(filename="fig2a.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
 
 
 ## PANEL B: Plot Mv treatment vs species biomass
@@ -115,7 +115,7 @@ fig2b <- ggplot(sub3, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=c
   coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
 #fig2b
 #fig2b + geom_jitter(position = position_jitter(w = 0.1, h = 0))
-ggsave(filename="fig2b.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+#ggsave(filename="fig2b.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
 
 
 ## PANEL C: Plot Mv treatment vs total biomass
@@ -143,7 +143,7 @@ fig2c <- ggplot(sub4, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=c
   coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
 #fig2c
 #fig2c + geom_jitter(position = position_jitter(w = 0.1, h = 0))
-ggsave(filename="fig2c.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
+#ggsave(filename="fig2c.pdf", width = 6, height = 4, units = 'in') #save the plot and define its size
 
 
 ## Figure2, ALL PANELS
@@ -172,5 +172,5 @@ fig2<-arrangeGrob(ag,
                     widths=unit.c(unit(1, "npc") - lwidth, lwidth), 
                     nrow=1)
 #fig2
-ggsave(filename="fig2.pdf", plot=fig2, width = 8, height = 8, units = 'in') #save the plot and define its size
+ggsave(filename="fig2.pdf", plot=fig2, width = 6, height = 12, units = 'in') #save the plot and define its size
 

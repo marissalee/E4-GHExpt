@@ -35,11 +35,11 @@ data4.1 <- ru.datas
 
 ## Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
 data4.2 <- melt(data4.1, measure.vars=c('mivi','compabund','total'), id.vars=c('sFpid','comptrt','mvtrt','soilmeas','sF'))
-#View(data4.2)
+whichvar<-which(colnames(data4.4)=='variable')
+whichval<-which(colnames(data4.4)=='value')
+colnames(data3.4)[whichvar]<-'biommeas'
+colnames(data3.4)[whichval]<-'biomval'
 
-#colnames(data4.2)
-colnames(data4.2)[6]<-'biommeas'
-colnames(data4.2)[7]<-'biomval'
 
 
 ## Plot sF (the final soil measure) vs M.v. biomass and total biomass
@@ -50,7 +50,7 @@ data4.3 <- transform(data4.2, soilmeas = factor(soilmeas,
                                                          "soilmoi")))
 data4.3 <- transform(data4.3, comptrt = factor(comptrt, 
                                                levels=c("N","P","S"),
-                                               labels=c("Neighbor = None","Neighbor = Panicum","Neighbor = Sorghum")))
+                                               labels=c("Neighbor \n= None","Neighbor \n= Panicum","Neighbor \n= Sorghum")))
 data4.3 <- transform(data4.3, biommeas = factor(biommeas, 
                                                levels=c("mivi","comptrt","total"),
                                                labels=c("Biomass = M.v.","Biomass = Neighbor","Biomass = Total")))

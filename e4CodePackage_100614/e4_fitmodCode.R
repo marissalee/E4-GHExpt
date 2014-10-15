@@ -3,17 +3,17 @@
 #Make summary table, Make coef tables
 
 #+ Set up model fxns  
-# 1. s1s0 = (mivi * beta)
+# 1. sF = (mivi * beta)
 # MODEL 1
-ModFxn1 <- function(df){h<- lm(s1s0 ~ mivi, data=df)}
+ModFxn1 <- function(df){h<- lm(sF ~ mivi, data=df)}
 
-# 2. s1s0 = (mivi * beta) + (compabund * beta2) + ((mivi*compabund) * beta3)
+# 2. sF = (mivi * beta) + (compabund * beta2) + ((mivi*compabund) * beta3)
 # MODEL 2
-ModFxn2 <- function(df){h<- lm(s1s0 ~ mivi * compabund, data=df)}
+ModFxn2 <- function(df){h<- lm(sF ~ mivi * compabund, data=df)}
 
 # MODEL 3
 # s1s0 = (total * beta)
-ModFxn3 <- function(df){h<- lm(s1s0 ~ total, data=df)}
+ModFxn3 <- function(df){h<- lm(sF ~ total, data=df)}
 
 
 #+ Set up generic fxn to pull out info from each fitted model 
@@ -31,8 +31,9 @@ ModInfo<-function(results){
 
 #+ Fit the models  
 #initialize counters
-SOILMEAS <- unique(datas2$soilmeas)
+SOILMEAS <- unique(datas2$scol)
 i <- 0
+
 COMPTRT <- unique(datas2$comptrt)
 t <- 0
 
@@ -47,7 +48,7 @@ for (i in 1:length(SOILMEAS)){
     iter <- paste(SOILMEAS[i], COMPTRT[t], sep='_')
     
     #subset the data
-    tmpdat<-datas2[datas2$soilmeas==SOILMEAS[i] & datas2$comptrt==COMPTRT[t],]
+    tmpdat<-datas2[datas2$scol==SOILMEAS[i] & datas2$comptrt==COMPTRT[t],]
     
     #run models
     mod1<-ModInfo(ModFxn1(tmpdat))
@@ -61,6 +62,7 @@ for (i in 1:length(SOILMEAS)){
     
   }
 }
+
 #str(mod1list)
 
 

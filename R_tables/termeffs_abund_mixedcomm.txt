@@ -1,0 +1,3 @@
+"resp"	"term"	"delAIC"	"Chisq"	"ChisqDF"	"pval"
+"M.v. abundance (g)"	"M.v. individuals per pot"	"-21.8538021388796"	"23.8538021388796"	"1"	"1.03936383220949e-06"
+"M.v. relative abundance (%)"	"M.v. individuals per pot"	"-4.65986374928229"	"6.65986374928229"	"1"	"0.00986084547198762"

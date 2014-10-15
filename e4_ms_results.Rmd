@@ -1,0 +1,149 @@
+---
+title: "E4 manuscript Results - Using ggplot"
+author: "Marissa Lee"
+date: "September 26, 2014"
+output:
+  pdf_document: default
+  html_document: default
+---
+*Filename: e4_ms_results.Rmd'*
+
+*A. This code needs the following files:*  
+
+1. In the folder 'e4DataPackage_092614'
+  + 'e4_potData.txt'
+  + 'e4_potData_dictionary.txt'
+2. In the folder 'e4CodePackage_100614'
+  + 'e4_cleanCode.R'
+  + 'e4_calcsiCode.R'
+  + 'mytheme.R'
+  + 'e4_makeFig2.R'
+  + 'e4_makeFig3.R'
+  + 'e4_Fig3stats.R'
+  + 'e4_makeFig4.R'
+
+*B. This code does the following things:*  
+
+1. Clean raw dataset (run external code)
+2. Make plots
+    + Fig2. Species' biomass
+    + Fig3. Soil measures under monocultures and M.v. density alone
+    + Fig4. Soil measures under mixture pots plotted against M.v. biomass and total biomass
+
+
+*******************
+
+#1. Clean raw dataset (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_cleanCode.R')
+#str(data)
+```
+
+*******************
+
+#2. Plot  
+
+##Fig2. Mv density treatment vs plant biomass
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_makeFig2.R')
+fig2
+```
+
+##Fig3. Monoculture type vs soil measure value (weighted and unweighted)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_makeFig3.R')
+fig3
+```
+
+###Statistics for Fig3
+```{r, echo=TRUE}
+source('e4CodePackage_100614/e4_Fig3stats.R')
+summaries
+model.params
+anova.params
+lm.pvals
+tukys
+```
+
+
+##Fig4. Mixture plant biomass vs soil measure (s1) or soil measure difference relative to the baseline (s1s0) 
++ Calculate the change in soil measurement values in the presence of M.v. (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_calcsiCode.R')
+#str(datas)
+```
+
++ Plot
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_makeFig4.R')
+fig4
+```
+
+###Statistics for Fig4
+```{r, echo=TRUE}
+source('e4CodePackage_100614/e4_Fig4stats.R')
+
+# summaries
+summaries.mv
+summaries.comp
+summaries.trt
+
+# model.params
+model.params
+
+# anova.params
+anova.paramsA # without biomval:comptrt
+anova.paramsB # without comptrt
+anova.paramsC # without biomval
+
+# lm.pvals
+lm.pvals
+
+# tukys.... need to figure this out
+
+```
+
+*******************
+
+#3. Fit models 
+
+### Predict soil measurement using mivi biomass, compabund, and total
++ Set up model fxns (run external code.... make these into mixed effects models)  
+```{r, echo=TRUE}
+#str(datas)
+datas2<-datas
+source('e4CodePackage_100614/e4_fitmodCode.R')
+#ModFxn1
+#ModFxn2
+#ModFxn3
+```
++ Set up generic fxn to pull out info from each fitted model 
++ Fit the models  
++ Organize fitted model results into tables; view the fitted model results
++ Significant model terms
+
+Model 1. s1s0 = (mivi * beta)  
+```{r,echo=FALSE}
+#dim(modl1)
+PvalSumm(modl1, 0.1)
+```
+  
+Model 2. s1s0 = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
+```{r,echo=FALSE}
+#dim(modl2)
+PvalSumm(modl2, 0.1)
+```
+  
+Model 3. s1s0 = (total * beta)  
+```{r,echo=FALSE}
+#dim(modl3)
+PvalSumm(modl3, 0.1)
+```
+
+
+
+
+
+
+
+
