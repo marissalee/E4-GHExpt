@@ -17,15 +17,14 @@ output:
   + 'e4_cleanCode.R'
   + 'e4_calcsiCode.R'
   + 'mytheme.R'
-  + 'e4_makeFig2.R'
-  + 'e4_makeFig3.R'
-  + 'e4_Fig3stats.R'
-  + 'e4_makeFig4.R'
+  + 'e4_Fig2stats.R' and 'e4_makeFig2.R' --> both reference --> 'e4_prepdfFig2.R'
+  + 'e4_Fig3stats.R' and 'e4_makeFig3.R' --> both reference --> 'e4_prepdfFig3.R'
+  + 'e4_Fig4stats.R' and 'e4_makeFig4.R' --> both reference --> 'e4_prepdfFig4.R'
 
 *B. This code does the following things:*  
 
 1. Clean raw dataset (run external code)
-2. Make plots
+2. Make plots and the stats that support them
     + Fig2. Species' biomass
     + Fig3. Soil measures under monocultures and M.v. density alone
     + Fig4. Soil measures under mixture pots plotted against M.v. biomass and total biomass
@@ -43,17 +42,37 @@ source('e4CodePackage_100614/e4_cleanCode.R')
 
 #2. Plot  
 
+###Statistics for Fig2
+```{r, echo=TRUE}
+source('e4CodePackage_100614/e4_Fig2stats.R')
+
+#panel a
+#summarize mv abund by mvtrt, by comptrt
+# lme4 model.params, anova.params
+# lm.pvals, tukys
+
+#panel b
+#summarize mivi biomass by mvtrt, by comptrt
+# lme4 model.params, anova.params
+# lm.pvals, tukys
+#summarize neighbor biomass by mvtrt, by comptrt
+# lme4 model.params, anova.params
+# lm.pvals, tukys
+
+#panel c
+#summarize total biomass by mvtrt, by comptrt
+# lme4 model.params, anova.params
+# lm.pvals, tukys
+
+```
+
 ##Fig2. Mv density treatment vs plant biomass
 ```{r,echo=TRUE}
 source('e4CodePackage_100614/e4_makeFig2.R')
 fig2
 ```
 
-##Fig3. Monoculture type vs soil measure value (weighted and unweighted)
-```{r,echo=TRUE}
-source('e4CodePackage_100614/e4_makeFig3.R')
-fig3
-```
+
 
 ###Statistics for Fig3
 ```{r, echo=TRUE}
@@ -64,6 +83,13 @@ anova.params
 lm.pvals
 tukys
 ```
+
+##Fig3. Monoculture type vs soil measure value (weighted and unweighted)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_makeFig3.R')
+fig3
+```
+
 
 
 ##Fig4. Mixture plant biomass vs soil measure (s1) or soil measure difference relative to the baseline (s1s0) 
@@ -102,6 +128,8 @@ lm.pvals
 # tukys.... need to figure this out
 
 ```
+
+
 
 *******************
 

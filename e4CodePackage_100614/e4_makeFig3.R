@@ -1,61 +1,36 @@
 #e4_makeFig3.R
 #Make Figure 3: Monoculture type vs soil measure value
 
-## Load libraries
+
+### Load libraries ###
 library(ggplot2)
 library(reshape2)
 library(grid)
 library(gridExtra)
 
-## My plot theme
+
+### My plot theme ###
 source('e4CodePackage_100614/mytheme.R')
 
-## Remove unnecessary cols  
-#str(data)
-removecols<-c('bk','julydate',
-              'pavi','sobi','weed','relmivi','compabund',
-              'notes')
-indx<-colnames(data) %in% removecols
-data.r<-data[,!indx]
 
-colnames(data.r)
-ru.data<- data.frame(potid=data.r$potid,
-                     type=data.r$type,
-                     comptrt=data.r$comptrt,
-                     mvtrt=data.r$mvtrt,
-                     mivi=data.r$mivi,
-                     total=data.r$total,
-                     nhdi=data.r$nhdi,
-                     nodi=data.r$nodi,
-                     totdi=data.r$totdi,
-                     ammonifd=data.r$ammonifd,
-                     nitrifd=data.r$nitrifd,
-                     minzd=data.r$minzd,
-                     soilmoi=data.r$soilmoi)
-data3.1 <- ru.data
-#View(data3.1)
+### Prep dataframe ###
+source('e4CodePackage_100614/prepdfFig3.R')
+#str(data3)
 
 
-## Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas) and add a column that weights the soilvals by total plant biomass
-data3.2 <- melt(data3.1, measure.vars=c('nhdi','nodi','totdi','ammonifd','nitrifd','minzd','soilmoi'), id.vars=c('potid','type','comptrt','mvtrt','mivi','total'))
-#View(data3.2)
-#colnames(data3.2)
-colnames(data3.2)[7]<-'soilmeas'
-colnames(data3.2)[8]<-'soilval'
-#colnames(data3.2)
-
-# ## Weigh soilvals by total plant biomass, replace Empty pots with NA here
-# data3.2$soilval.totbiom <- data3.2$soilval / data3.2$total
-# data3.2[data3.2$type=='Empty','soilval.totbiom'] <- NA
-# #View(data3.2)
 
 
-## Subset data
-data3.2$soilmeas <- factor(data3.2$soilmeas, levels = c('nhdi', 'nodi', 'totdi', 'ammonifd', 'nitrifd','minzd','soilmoi'))
-data3.2$type <- factor(data3.2$type, levels = c('Empty', 'Mivi', 'Pavi', 'Sobi', 'CompEmpty', 'CompSobi', 'CompPavi'))
+### Order the factors a logical way ###
 
-## A. Plot monoculture type vs soil value in facets
-sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+data3$soilmeas <- factor(data3$soilmeas, levels = c('nhdi', 'nodi', 'totdi', 'ammonifd', 'nitrifd','minzd','soilmoi'))
+data3$type <- factor(data3$type, levels = c('Empty', 'Mivi', 'Pavi', 'Sobi', 'CompEmpty', 'CompSobi', 'CompPavi'))
+
+
+
+
+### PANEL A. Plot monoculture type vs soil value in facets ###
+
+sub1<-subset(data3, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
 fig3a <- ggplot(sub1, aes(x=type, y=soilval)) + 
   mytheme +
   ggtitle('a') +
@@ -67,8 +42,11 @@ fig3a <- ggplot(sub1, aes(x=type, y=soilval)) +
 #fig3a
 
 
-## B. Plot M.v. biomass vs soil value in facets for comptrt=N
-sub1<-subset(data3.2, type == 'Mivi' | type == 'Empty' | type == 'CompEmpty')
+
+
+### PANEL B. Plot M.v. biomass vs soil value in facets for comptrt=N ###
+
+sub1<-subset(data3, type == 'Mivi' | type == 'Empty' | type == 'CompEmpty')
 
 fig3b <- ggplot(sub1, aes(x=mivi, y=soilval, shape=as.factor(mvtrt))) + 
   mytheme +
@@ -83,7 +61,10 @@ fig3b <- ggplot(sub1, aes(x=mivi, y=soilval, shape=as.factor(mvtrt))) +
   geom_point(aes(shape=as.factor(mvtrt)), size=3)
 #fig3b
 
-# All panels
+
+
+
+### All PANELS ###
 
 #FUNCTION TO ASSIGN A PLOT'S LEGEND AS A GROB OBJECT
 g_legend<-function(p){
@@ -107,7 +88,6 @@ fig3<-arrangeGrob(tmp,
 #fig3
 ggsave(filename="fig3.pdf", plot=fig3, width = 10, height = 12, units = 'in') #save the plot and define its size
 
-data3 <- data3.2
 
 
 
