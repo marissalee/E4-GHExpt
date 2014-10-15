@@ -7,11 +7,12 @@ source('e4CodePackage_100614/statFxns.R')
 
 
 ### Prep dataframe ###
-source('e4CodePackage_100614/prepdfFig4.R')
+source('e4CodePackage_100614/e4_prepdfFig4.R')
 #str(data4)
 
 
 ### Make a column for trt (mvtrt x comptrt) ### -- this is important for looking at cross-category means
+data4t <- data4
 data4t$trt <- paste(data4[,'mvtrt'], data4[,'comptrt'], sep='')
 
 
@@ -94,20 +95,18 @@ lm.pvals <- list()
 for (s in 1:length(SOILMEAS)){
   s<-1
   df <- subset(sub.mivi, soilmeas == SOILMEAS[s])
-  lm <- lm(sF ~ biomval + comptrt + biomval:comptrt, data = df) #run the model
-  lmfit<-anova(lm) #test the significance of the term type
-
-  lmfit$'Pr(>F)'
+  aov.fit <- aov(sF ~ biomval + comptrt + biomval:comptrt, data = df) #run the model
+  betas <- c('biomval','comptrt','biomval:comptrt', 'Residuals')
   
   #save the anova pvals
-  pval<-lmfit$'Pr(>F)'
-  term<-rownames(lmfit)
-  lm.pvals[[as.character(SOILMEAS[s])]] <- data.frame(term, pval)
+  aov.fit.tab<-matrix(unlist(summary(aov.fit)[1]), nrow=length(betas))
+  pval<- aov.fit.tab[,5]
+  lm.pvals[[as.character(SOILMEAS[s])]] <- data.frame(betas, pval)
   
-  #put mivi into bins, add that as a treatment, run the model over again and then look at the tukys
   #save the tuky pvals
-  #TukeyHSD(lm)
-  #tukys[[as.character(SOILMEAS[s])]]<-TukeyHSD(lmfit)$comptrt
+  tuk<-TukeyHSD(aov.fit, 'comptrt')[1]
+  tukys[[as.character(SOILMEAS[s])]] <- data.frame(tuk)
+  
 }
 lm.pvals
 #tukys

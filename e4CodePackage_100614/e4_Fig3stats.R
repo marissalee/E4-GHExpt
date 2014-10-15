@@ -7,12 +7,12 @@ source('e4CodePackage_100614/statFxns.R')
 
 
 ### Prep dataframe ###
-source('e4CodePackage_100614/prepdfFig3.R')
-#str(data3)
+source('e4CodePackage_100614/e4_prepdfFig3.R')
+str(data3)
 
 
 ### Subset so that only have data from monocultures ###
-sub1<-subset(data3.4, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
+sub1<-subset(data3, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
 
 
 ### I'm going to be looping through each soil measure for all of these, so... ###
@@ -30,7 +30,7 @@ for (s in 1:length(SOILMEAS)){
   summary <- SummarizeThis(data=df, resp.var='soilval', group.var='type')
   summaries[[as.character(SOILMEAS[s])]] <- summary
 }
-summaries
+#summaries
 
 
 
@@ -52,8 +52,8 @@ for (s in 1:length(SOILMEAS)){
   #extract lmer anova parameters from termeff
   anova.params[[as.character(SOILMEAS[s])]] <- ExtractLMER.anova(termeff)
 }
-model.params
-anova.params
+#model.params
+#anova.params
 
 
 
@@ -64,14 +64,19 @@ s <- 0
 lm.pvals <- list()
 tukys <- list()
 for (s in 1:length(SOILMEAS)){
- s<-1
   df <- subset(sub1, soilmeas == SOILMEAS[s])
-  lm <- lm(soilval ~ type, data = df) #run the model
-  lmfit<-anova(lm) #test the significance of the term type
+  aov.fit <- aov(soilval ~ type, data = df)
+  betas <- c('type','Residuals')
   
-  #save the anova pval and tuky pvals
-  lm.pvals[[as.character(SOILMEAS[s])]]<-anova(lmfit)$'Pr(>F)'[1]
-  tukys[[as.character(SOILMEAS[s])]]<-TukeyHSD(lmfit)$type
+  #save the anova pval 
+  aov.fit.tab<-matrix(unlist(summary(aov.fit)[1]), nrow=length(betas))
+  pval<- aov.fit.tab[,5]
+  lm.pvals[[as.character(SOILMEAS[s])]] <- data.frame(betas, pval)
+  
+  #save the tuky pvals
+  tuk<-TukeyHSD(aov.fit, 'type')[1]
+  tukys[[as.character(SOILMEAS[s])]] <- data.frame(tuk)
+  
 }
 lm.pvals
 tukys

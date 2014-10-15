@@ -36,7 +36,7 @@ colnames(data4.2)[whichval]<-'biomval'
 
 ### Check structure ###
 
-str(data4.2)
+#str(data4.2)
 
 
 

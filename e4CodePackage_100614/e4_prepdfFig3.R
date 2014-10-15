@@ -43,7 +43,7 @@ colnames(data3.2)[whichval]<-'soilval'
 
 ### Check structure ###
 
-str(data3.2)
+#str(data3.2)
 
 
 

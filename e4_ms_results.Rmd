@@ -35,7 +35,7 @@ output:
 #1. Clean raw dataset (run external code)
 ```{r,echo=TRUE}
 source('e4CodePackage_100614/e4_cleanCode.R')
-#str(data)
+str(data)
 ```
 
 *******************
@@ -44,7 +44,7 @@ source('e4CodePackage_100614/e4_cleanCode.R')
 
 ###Statistics for Fig2
 ```{r, echo=TRUE}
-source('e4CodePackage_100614/e4_Fig2stats.R')
+source('e4CodePackage_100614/e4_Fig2stats.R') #this file is actually empty, it just references the prepdf
 
 #panel a
 #summarize mv abund by mvtrt, by comptrt
@@ -122,10 +122,9 @@ anova.paramsA # without biomval:comptrt
 anova.paramsB # without comptrt
 anova.paramsC # without biomval
 
-# lm.pvals
+# lm.pvals and tukys
 lm.pvals
-
-# tukys.... need to figure this out
+tukys
 
 ```
 

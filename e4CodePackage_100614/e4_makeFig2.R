@@ -14,7 +14,7 @@ source('e4CodePackage_100614/mytheme.R')
 
 
 ### Prep dataframe ###
-source('e4CodePackage_100614/prepdfFig2.R')
+source('e4CodePackage_100614/e4_prepdfFig2.R')
 #str(data2)
 
 
