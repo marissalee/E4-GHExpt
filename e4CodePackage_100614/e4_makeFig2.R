@@ -28,8 +28,8 @@ sub<-subset(data2, biommeas == "relmivi")
 #set up plot
 fig2a <- ggplot(sub, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt)) + 
   mytheme +
-  ylab("M.v. relative\n abundance (%)") + 
-  xlab("M.v. treatment") + 
+  ylab("Microstegium relative\n abundance (%)") + 
+  xlab("Microstegium\ndensity treatment") + 
   ggtitle('a') +
   stat_summary(aes(shape=comptrt, colour=comptrt),fun.y = mean, geom='point', size=3) +
   stat_summary(aes(colour=comptrt), fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2) +
@@ -61,7 +61,7 @@ sub3<-subset(sub2, biommeas != "total")
 fig2b <- ggplot(sub3, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt, linetype=biommeas)) +
   mytheme +
   ylab("Species' dry above-\nground plant biomass (g)") + 
-  xlab("M.v. treatment") +
+  xlab("Microstegium\ndensity treatment") +
   ggtitle('b') +
   stat_summary(mapping=aes(shape=comptrt, colour=comptrt), fun.y = mean, geom='point', size=3) +
   stat_summary(mapping=aes(colour=comptrt, linetype=biommeas), fun.y = mean, geom='line', size=1) + 
@@ -77,7 +77,7 @@ fig2b <- ggplot(sub3, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=c
   scale_linetype_manual(values = c("solid","dotdash"),
                         name="Species",
                         breaks=c("mivi","compabund"),
-                        labels=c("M.v.", "Neighbor sp.")) +
+                        labels=c("Microstegium", "Neighbor sp.")) +
   coord_cartesian(ylim=c(-5,105)) + scale_y_continuous(breaks=seq(0, 100, 20)) +
   coord_cartesian(xlim=c(-0.5,6.5)) + scale_x_continuous(breaks=seq(0, 6, 1))
 #fig2b
@@ -96,7 +96,7 @@ sub4<-subset(data2, biommeas == "total")
 fig2c <- ggplot(sub4, aes(x=as.integer(as.character(mvtrt)), y=biomval, colour=comptrt, shape=comptrt)) +
   mytheme +
   ylab("Total dry above-\nground plant biomass (g)") + 
-  xlab("M.v. treatment") +
+  xlab("Microstegium\ndensity treatment") +
   ggtitle('c') +
   stat_summary(mapping=aes(shape=comptrt, colour=comptrt), fun.y = mean, geom='point', size=3) +
   stat_summary(mapping=aes(colour=comptrt), fun.y = mean, geom='line', size=1) + 

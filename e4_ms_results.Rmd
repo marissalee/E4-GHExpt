@@ -35,96 +35,137 @@ output:
 #1. Clean raw dataset (run external code)
 ```{r,echo=TRUE}
 source('e4CodePackage_100614/e4_cleanCode.R')
-str(data)
+#str(data)
 ```
 
 *******************
 
 #2. Plot  
 
-###Statistics for Fig2
+###Fig2 : Plant biomasses vs density trt
 ```{r, echo=TRUE}
 source('e4CodePackage_100614/e4_Fig2stats.R') #this file is actually empty, it just references the prepdf
 
-#panel a
-#summarize mv abund by mvtrt, by comptrt
-# lme4 model.params, anova.params
-# lm.pvals, tukys
+# panel a letters
+tukpval<-data.frame(lm.fig2a$tukys$'mvtrt:comptrt')
+p<-round(tukpval$p.adj, digits=2)
+nam<-row.names(tukpval)
+tuks<-data.frame(nam,p)
 
-#panel b
-#summarize mivi biomass by mvtrt, by comptrt
-# lme4 model.params, anova.params
-# lm.pvals, tukys
-#summarize neighbor biomass by mvtrt, by comptrt
-# lme4 model.params, anova.params
-# lm.pvals, tukys
+#within P
+wP<-grep('..P...P', tuks$nam)
+tuks[wP,] # all mvtrt levels are different except 1 to 2
 
-#panel c
-#summarize total biomass by mvtrt, by comptrt
-# lme4 model.params, anova.params
-# lm.pvals, tukys
+#within S
+wS<-grep('..S...S', tuks$nam)
+tuks[wS,] # none of the levels are different
 
-```
+#within mvtrt levels
+wmvtrt0<-grep('0...0..', tuks$nam)
+wmvtrt1<-grep('1...1..', tuks$nam)
+wmvtrt2<-grep('2...2..', tuks$nam)
+wmvtrt4<-grep('4...4..', tuks$nam)
+wmvtrt5<-grep('5...5..', tuks$nam)
+tuks[wmvtrt0,] # not diff
+tuks[wmvtrt1,] # diff (0.01)
+tuks[wmvtrt2,] # diff (<0.01)
+tuks[wmvtrt4,] # diff (<0.01)
+tuks[wmvtrt5,] # diff (<0.01)
 
-##Fig2. Mv density treatment vs plant biomass
-```{r,echo=TRUE}
+
+#summaries
+sum.fig2a
+sum.fig2b.mivi
+sum.fig2b.comp
+sum.fig2c
+
+#lme4
+lme.fig2a
+lme.fig2b.mivi
+lme.fig2b.comp
+lme.fig2c
+
+#lm
+lm.fig2a
+lm.fig2b.mivi
+lm.fig2b.comp
+lm.fig2c
+
+#plot
 source('e4CodePackage_100614/e4_makeFig2.R')
 fig2
+
 ```
 
 
 
-###Statistics for Fig3
+###Fig3 : Monocultures vs soil measurements
 ```{r, echo=TRUE}
 source('e4CodePackage_100614/e4_Fig3stats.R')
-summaries
-model.params
-anova.params
-lm.pvals
-tukys
-```
 
-##Fig3. Monoculture type vs soil measure value (weighted and unweighted)
-```{r,echo=TRUE}
+#summaries
+sum.fig3
+
+#lme4
+lme.fig3
+
+#lm
+lm.fig3
+
+#plot
 source('e4CodePackage_100614/e4_makeFig3.R')
 fig3
+
 ```
 
 
 
-##Fig4. Mixture plant biomass vs soil measure (s1) or soil measure difference relative to the baseline (s1s0) 
+##Fig4 : Mivi biomass vs soil measures w/o neighbors
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_Fig4stats.R')
+
+#summaries
+sum.fig4
+
+#lme4
+lme.fig4
+
+#lm
+lm.fig4
+
+#plot
+source('e4CodePackage_100614/e4_makeFig4.R')
+fig4
+
+```
+
+
+
+##Fig5. Mixture plant biomass vs soil measures
 + Calculate the change in soil measurement values in the presence of M.v. (run external code)
 ```{r,echo=TRUE}
 source('e4CodePackage_100614/e4_calcsiCode.R')
 #str(datas)
 ```
 
-+ Plot
++ Fig 5
 ```{r,echo=TRUE}
-source('e4CodePackage_100614/e4_makeFig4.R')
-fig4
-```
+source('e4CodePackage_100614/e4_Fig5stats.R')
 
-###Statistics for Fig4
-```{r, echo=TRUE}
-source('e4CodePackage_100614/e4_Fig4stats.R')
+#for mivi
+sum.fig5.mivi
+lme.fig5.mivi
+lm.fig5.mivi
 
-# summaries
-summaries.mv
-summaries.comp
-summaries.trt
+#for total
+sum.fig5.total
+lme.fig5.total
+lm.fig5.total
 
-# model.params
-model.params
 
-# anova.params
-anova.paramsA # without biomval:comptrt
-anova.paramsB # without comptrt
-anova.paramsC # without biomval
-
-# lm.pvals and tukys
-lm.pvals
-tukys
+#plot
+source('e4CodePackage_100614/e4_makeFig5.R')
+fig5
 
 ```
 
@@ -132,7 +173,7 @@ tukys
 
 *******************
 
-#3. Fit models 
+#3. Other stats????
 
 ### Predict soil measurement using mivi biomass, compabund, and total
 + Set up model fxns (run external code.... make these into mixed effects models)  
@@ -149,19 +190,19 @@ source('e4CodePackage_100614/e4_fitmodCode.R')
 + Organize fitted model results into tables; view the fitted model results
 + Significant model terms
 
-Model 1. s1s0 = (mivi * beta)  
+Model 1. sF = (mivi * beta)  
 ```{r,echo=FALSE}
 #dim(modl1)
 PvalSumm(modl1, 0.1)
 ```
   
-Model 2. s1s0 = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
+Model 2. sF = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
 ```{r,echo=FALSE}
 #dim(modl2)
 PvalSumm(modl2, 0.1)
 ```
   
-Model 3. s1s0 = (total * beta)  
+Model 3. sF = (total * beta)  
 ```{r,echo=FALSE}
 #dim(modl3)
 PvalSumm(modl3, 0.1)

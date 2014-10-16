@@ -20,7 +20,7 @@ data[data$mivi == 0,'relmivi'] <- rep(0,30)
 ### Remove unnecessary cols ###
 
 #str(data)
-removecols<-c('bk','julydate',
+removecols<-c('julydate',
               'pavi','sobi','weed',
               'nhdi','nodi','totdi','ammonifd','nitrifd','minzd','soilmoi',
               'notes')
@@ -29,6 +29,7 @@ data.r<-data[,!indx]
 
 #colnames(data.r)
 ru.data<- data.frame(potid=data.r$potid,
+                     bk=data.r$bk,
                      type=data.r$type,
                      comptrt=data.r$comptrt,
                      mvtrt=data.r$mvtrt,
@@ -43,11 +44,14 @@ data2.1 <- ru.data
 
 
 ### Reshape ###
+library(reshape2)
 
 ## Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
-data2.2 <- melt(data2.1, measure.vars=c('relmivi','mivi','compabund','total'), id.vars=c('potid','type','comptrt','mvtrt'))
-colnames(data2.2)[5]<-'biommeas'
-colnames(data2.2)[6]<-'biomval'
+data2.2 <- melt(data2.1, measure.vars=c('relmivi','mivi','compabund','total'), id.vars=c('potid','bk','type','comptrt','mvtrt'))
+whichvar<-which(colnames(data2.2)=='variable')
+whichval<-which(colnames(data2.2)=='value')
+colnames(data2.2)[whichvar]<-'biommeas'
+colnames(data2.2)[whichval]<-'biomval'
 
 
 
@@ -55,10 +59,11 @@ colnames(data2.2)[6]<-'biomval'
 ### Check structure ###
 
 data2.2$potid<-as.factor(data2.2$potid)
-data2.2$mvtrt<-as.factor(data2.2$mvtrt)
+data2.2$bk<-as.factor(data2.2$bk)
+data2.2$mvtrt<-as.ordered(data2.2$mvtrt)
 #str(data2.2)
 
-
+contrasts(data2.2$mvtrt) <- contr.poly(6, c(0,1,2,4,5,6)) 
 
 
 ### Make it a nice name ###

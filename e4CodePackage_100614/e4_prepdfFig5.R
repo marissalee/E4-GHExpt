@@ -23,6 +23,7 @@ data4.1 <- ru.datas
 
 
 ### Reshape ###
+library(reshape2)
 
 ## Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas)  
 data4.2 <- melt(data4.1, measure.vars=c('mivi','compabund','total'), id.vars=c('sFpid','bk','comptrt','mvtrt','soilmeas','sF'))

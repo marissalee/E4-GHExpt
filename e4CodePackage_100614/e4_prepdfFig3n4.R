@@ -1,5 +1,5 @@
-#e4_prepdfFig3.R
-#Prep dataframe for Figure 3
+#e4_prepdfFig3n4.R
+#Prep dataframe for Figure 3 and 4
 
 
 ### Remove unnecessary cols ###
@@ -30,6 +30,7 @@ data3.1 <- ru.data
 
 
 ### Reshape ###
+library(reshape2)
 
 ## Reshape so that plant biomass values are all in one column (biomval), with an identifier column to identify what type of biomass that value represents (biommeas) and add a column that weights the soilvals by total plant biomass
 data3.2 <- melt(data3.1, measure.vars=c('nhdi','nodi','totdi','ammonifd','nitrifd','minzd','soilmoi'), id.vars=c('potid','bk','type','comptrt','mvtrt','mivi','total'))
