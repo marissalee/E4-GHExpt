@@ -54,7 +54,7 @@ fig5a <- ggplot(sub1, aes(x=biomval, y=sF, shape=comptrt, colour=comptrt)) +
   ylab("Soil measurement") + 
   xlab("Dry aboveground\nMicrostegium biomass (g)") + 
   facet_grid(soilmeas ~ ., scales='free', labeller=soilmeas_labeller)  +
-  geom_point(size=3) +
+  geom_point(size=1.5) +
   scale_colour_manual(values=c("grey", "black", "black"), 
                       name="Neighbor\ntreatment",
                       breaks=c("N", "P", "S"),
@@ -63,7 +63,7 @@ fig5a <- ggplot(sub1, aes(x=biomval, y=sF, shape=comptrt, colour=comptrt)) +
                      name="Neighbor\ntreatment",
                      breaks=c("N", "P", "S"),
                      labels=c("No Neighbor", "Panicum", "Sorghum"))
-#fig5a
+fig5a
 
 
 
@@ -78,7 +78,7 @@ fig5b <- ggplot(sub1, aes(x=biomval, y=sF, shape=comptrt, colour=comptrt)) +
   ylab("Soil measurement") + 
   xlab("Dry aboveground\ntotal plant biomass (g)") + 
   facet_grid(soilmeas ~ ., scales='free', labeller=soilmeas_labeller)  +
-  geom_point(size=3) +
+  geom_point(size=1.5) +
   scale_colour_manual(values=c("grey", "black", "black"), 
                       name="Neighbor\ntreatment",
                       breaks=c("N", "P", "S"),
@@ -87,7 +87,7 @@ fig5b <- ggplot(sub1, aes(x=biomval, y=sF, shape=comptrt, colour=comptrt)) +
                      name="Neighbor\ntreatment",
                      breaks=c("N", "P", "S"),
                      labels=c("No Neighbor", "Panicum", "Sorghum"))
-#fig5b
+fig5b
 
 
 
@@ -113,7 +113,7 @@ fig5<-arrangeGrob(ag,
                   legend, 
                   widths=unit.c(unit(1, "npc") - lwidth, lwidth), 
                   nrow=1)
-#fig5
+fig5
 ggsave(filename="fig5.pdf", plot=fig5, width = 10, height = 12, units = 'in') #save the plot and define its size
 
 

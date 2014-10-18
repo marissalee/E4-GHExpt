@@ -47,30 +47,73 @@ soilmeas_labeller <- function(variable,value){
 
 
 
-### FIGURE 3. Plot monoculture type vs soil value in facets ###
+### FIGURE 3. Plot monoculture type vs total biomass and soil value in facets ###
 
+#subset data to monocultures
 sub1<-subset(data3, type == 'Mivi' | type == 'Empty' | type == 'Pavi' | type == 'Sobi')
-  
-fig3 <- ggplot(sub1, aes(x=type, y=soilval)) + 
+
+
+
+
+### FIGURE 3bs. Plot monoculture type vs total biomass ###
+fig3a <- ggplot(sub1, aes(x=type, y=total)) + 
   mytheme +
+  ggtitle('a') +
+  ylab('Total dry above-\nground biomass (g)') +
+  xlab('Monoculture type') +
+  stat_summary(fun.y = mean, geom='point', size=2) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2, size=0.5)
+fig3a 
+
+#ammend dataframe to include posthoc letters
+# Empty = a
+# Mivi = b
+# Pavi = b
+# Sobi = c
+labels <- c('a','b','b','c')
+addlabels <- function(x) {
+  labpos <- mean(x) + 8
+  names(labpos) <- c("y") #this is what ggplot is expecting
+  return (labpos)
+}
+#fig3a <- fig3a + stat_summary(fun.data = 'addlabels', geom='text', label=labels)
+
+
+
+
+### FIGURE 3b. Plot monoculture type vs soil value in facets ###
+fig3b <- ggplot(sub1, aes(x=type, y=soilval)) + 
+  mytheme +
+  ggtitle('b') +
   ylab('Soil measurement') +
   xlab('Monoculture type') +
   facet_grid( soilmeas ~. , scales='free', labeller=soilmeas_labeller) +
-  stat_summary(fun.y = mean, geom='point', size=3) +
-  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2)
+  stat_summary(fun.y = mean, geom='point', size=2) +
+  stat_summary(fun.data = mean_cl_normal, geom = 'errorbar', mult = 1, width=0.2, size=0.5)
+fig3b
+
+#ammend dataframe to include posthoc letters .. I don't know how to do this on a faceted plot yet
+
+
+
+
+### FIGURE 3, ALL PANELS ###
+
+#check out the individual panels
+#fig3a
+#fig3b 
+
+#arrange the grob objects
+fig3<-arrangeGrob(fig3a + theme(legend.position="none"),
+                  fig3b + theme(legend.position="none"),
+                  heights=unit.c(unit(1/6, "native"), 
+                                 unit(5/6, "native")),
+                  nrow=2)
 fig3
-ggsave(filename="fig3.pdf", plot=fig3, width = 5, height = 12, units = 'in') #save the plot and define its size
 
 
 
-
-
-
-
-
-
-
-
+ggsave(filename="fig3.pdf", plot=fig3, width = 4, height = 10, units = 'in') #save the plot and define its size
 
 
 

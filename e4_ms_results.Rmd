@@ -36,21 +36,53 @@ output:
 ```{r,echo=TRUE}
 source('e4CodePackage_100614/e4_cleanCode.R')
 #str(data)
+
+### Read-in all the custom functions for doing stats ###
+source('e4CodePackage_100614/statFxns.R')
 ```
 
 *******************
 
 #2. Plot  
 
-###Fig2 : Plant biomasses vs density trt
-```{r, echo=TRUE}
-source('e4CodePackage_100614/e4_Fig2stats.R') #this file is actually empty, it just references the prepdf
 
-# panel a letters
-tukpval<-data.frame(lm.fig2a$tukys$'mvtrt:comptrt')
-p<-round(tukpval$p.adj, digits=2)
-nam<-row.names(tukpval)
-tuks<-data.frame(nam,p)
+
+
+###Fig2 : Plant biomasses vs density trt
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.width = 4, fig.height = 7}
+source('e4CodePackage_100614/e4_Fig2stats.R')
+source('e4CodePackage_100614/e4_makeFig2.R')
+
+#plot
+fig2
+
+#means
+PrettyMeans.2levs(sum.fig2a)
+PrettyMeans.2levs(sum.fig2b.mivi)
+PrettyMeans.2levs(sum.fig2b.comp)
+PrettyMeans.2levs(sum.fig2c)
+
+
+#lme4
+# y ~ mvtrt + comptrt + mvtrt:comptrt + (1|bk)
+PrettyLME4(lme.fig2a)
+PrettyLME4(lme.fig2b.mivi)
+PrettyLME4(lme.fig2b.comp)
+PrettyLME4(lme.fig2c)
+
+
+#lm
+# lm.fig2a
+# lm.fig2b.mivi
+# lm.fig2b.comp
+# lm.fig2c
+
+```
+
+
+```{r,echo=FALSE, include=FALSE}
+####Fig2a letters ... not adding this...
+tuks <- PullTuks(lm.fig2a$tukys$'mvtrt:comptrt')
 
 #within P
 wP<-grep('..P...P', tuks$nam)
@@ -72,70 +104,91 @@ tuks[wmvtrt2,] # diff (<0.01)
 tuks[wmvtrt4,] # diff (<0.01)
 tuks[wmvtrt5,] # diff (<0.01)
 
-
-#summaries
-sum.fig2a
-sum.fig2b.mivi
-sum.fig2b.comp
-sum.fig2c
-
-#lme4
-lme.fig2a
-lme.fig2b.mivi
-lme.fig2b.comp
-lme.fig2c
-
-#lm
-lm.fig2a
-lm.fig2b.mivi
-lm.fig2b.comp
-lm.fig2c
-
-#plot
-source('e4CodePackage_100614/e4_makeFig2.R')
-fig2
-
 ```
 
 
 
-###Fig3 : Monocultures vs soil measurements
-```{r, echo=TRUE}
+
+###Fig3 : Monocultures vs total biomass and soil measurements
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=7, fig.width=3.5}
 source('e4CodePackage_100614/e4_Fig3stats.R')
-
-#summaries
-sum.fig3
-
-#lme4
-lme.fig3
-
-#lm
-lm.fig3
+source('e4CodePackage_100614/e4_makeFig3.R')
 
 #plot
-source('e4CodePackage_100614/e4_makeFig3.R')
 fig3
 
+#means
+sum.fig3a #total biomass
+PrettyMeans.2levs(sum.fig3b) #soil measures
+
+
+#lme4
+# y ~ type + (1|bk)
+lme.fig3a[[2]]$anova.pval #total biomass
+PrettyLME.fig3b(lme.fig3b) #soil measures
+
 ```
+
+####Fig3a letters 
+```{r,echo=FALSE}
+tuks <- PullTuks(lm.fig3a$tukys)
+tuks # all are different (p <0.01) except Pavi v Mivi
+
+```
+
+####Fig3b letters 
+```{r,echo=FALSE}
+#nhdi
+PullTuks(lm.fig3b$tukys$nhdi) 
+# Only Sobi v Empty are different (p<0.01)
+
+#nodi
+PullTuks(lm.fig3b$tukys$nodi) 
+# All different (p<0.01) except...
+# Pavi v Mivi
+# Sobi v Pavi
+
+#toti
+PullTuks(lm.fig3b$tukys$totdi)
+# All different (p<0.01) except...
+# Pavi v Mivi
+# Sobi v Pavi
+
+#ammonifd
+PullTuks(lm.fig3b$tukys$ammonifd)
+# None are different
+
+#nitrifd
+PullTuks(lm.fig3b$tukys$nitrifd)
+# None are different
+
+#minzd
+PullTuks(lm.fig3b$tukys$minzd)
+# None are different
+
+#soilmoi
+PullTuks(lm.fig3b$tukys$soilmoi)
+# Sobi v Empty (p<0.01)
+# Sobi v Mivi (p<0.01)
+# Sobi v Pavi (p<0.01)
+
+```
+
 
 
 
 ##Fig4 : Mivi biomass vs soil measures w/o neighbors
-```{r,echo=TRUE}
+```{r,echo=TRUE, warning=FALSE, message=FALSE, fig.height=7, fig.width=4}
 source('e4CodePackage_100614/e4_Fig4stats.R')
-
-#summaries
-sum.fig4
-
-#lme4
-lme.fig4
-
-#lm
-lm.fig4
+source('e4CodePackage_100614/e4_makeFig4.R')
 
 #plot
-source('e4CodePackage_100614/e4_makeFig4.R')
 fig4
+
+
+#lme4 anova pvals
+PrettyLME.fig4(lme.fig4)
+
 
 ```
 
@@ -149,23 +202,21 @@ source('e4CodePackage_100614/e4_calcsiCode.R')
 ```
 
 + Fig 5
-```{r,echo=TRUE}
+```{r,echo=TRUE, warning=FALSE, message=FALSE,  fig.height=7, fig.width=6}
 source('e4CodePackage_100614/e4_Fig5stats.R')
-
-#for mivi
-sum.fig5.mivi
-lme.fig5.mivi
-lm.fig5.mivi
-
-#for total
-sum.fig5.total
-lme.fig5.total
-lm.fig5.total
-
+source('e4CodePackage_100614/e4_makeFig5.R')
 
 #plot
-source('e4CodePackage_100614/e4_makeFig5.R')
 fig5
+
+#for mivi
+PrettyMeans.2levs(sum.fig5.mivi) #comptrt means
+PrettyLME.fig5(lme.fig5.mivi) #pvals and fixed effect coefs
+
+#for total
+PrettyMeans.2levs(sum.fig5.total) #comptrt means
+PrettyLME.fig5(lme.fig5.total) #pvals and fixed effect coefs
+
 
 ```
 
@@ -177,7 +228,7 @@ fig5
 
 ### Predict soil measurement using mivi biomass, compabund, and total
 + Set up model fxns (run external code.... make these into mixed effects models)  
-```{r, echo=TRUE}
+```{r, echo=TRUE, include=FALSE}
 #str(datas)
 datas2<-datas
 source('e4CodePackage_100614/e4_fitmodCode.R')
@@ -191,19 +242,19 @@ source('e4CodePackage_100614/e4_fitmodCode.R')
 + Significant model terms
 
 Model 1. sF = (mivi * beta)  
-```{r,echo=FALSE}
+```{r,echo=FALSE, include=FALSE}
 #dim(modl1)
 PvalSumm(modl1, 0.1)
 ```
   
 Model 2. sF = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
-```{r,echo=FALSE}
+```{r,echo=FALSE, include=FALSE}
 #dim(modl2)
 PvalSumm(modl2, 0.1)
 ```
   
 Model 3. sF = (total * beta)  
-```{r,echo=FALSE}
+```{r,echo=FALSE, include=FALSE}
 #dim(modl3)
 PvalSumm(modl3, 0.1)
 ```

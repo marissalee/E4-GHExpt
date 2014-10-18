@@ -57,8 +57,8 @@ fig4 <- ggplot(sub1, aes(x=mivi, y=soilval, shape=as.factor(mvtrt))) +
                      name="M.v. density\ntreatment",
                      breaks=c("0", "1", "2", "4", "5","6"),
                      labels=c("0", "1", "2", "4", "5","6")) +
-  geom_point(aes(shape=as.factor(mvtrt)), size=3)
-#fig4
+  geom_point(aes(shape=as.factor(mvtrt)), size=1.5)
+fig4
 ggsave(filename="fig4.pdf", plot=fig4, width = 6, height = 12, units = 'in') #save the plot and define its size
 
 
