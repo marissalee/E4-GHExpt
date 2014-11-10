@@ -10,35 +10,39 @@ output:
 
 *A. This code needs the following files:*  
 
-1. In the folder 'e4DataPackage_092614'
+1. *'e4Data' folder*
   + 'e4_potData.txt'
   + 'e4_potData_dictionary.txt'
-2. In the folder 'e4CodePackage_100614'
+2. *'e4Code' folder*
   + 'e4_cleanCode.R'
   + 'e4_calcsiCode.R'
   + 'mytheme.R'
+  + 'statFxns.R'
   + 'e4_Fig2stats.R' and 'e4_makeFig2.R' --> both reference --> 'e4_prepdfFig2.R'
-  + 'e4_Fig3stats.R' and 'e4_makeFig3.R' --> both reference --> 'e4_prepdfFig3.R'
-  + 'e4_Fig4stats.R' and 'e4_makeFig4.R' --> both reference --> 'e4_prepdfFig4.R'
+  + 'e4_Fig3stats.R' and 'e4_makeFig3.R' --> both reference --> 'e4_prepdfFig3n4.R'
+  + 'e4_Fig4stats.R' and 'e4_makeFig4.R' --> both reference --> 'e4_prepdfFig3n4.R'
+  + 'e4_Fig5stats.R' and 'e4_makeFig5.R' --> both reference --> 'e4_prepdfFig5.R'
 
 *B. This code does the following things:*  
 
 1. Clean raw dataset (run external code)
-2. Make plots and the stats that support them
+2. *'e4Output_figures' folder* has Results section figures
     + Fig2. Species' biomass
-    + Fig3. Soil measures under monocultures and M.v. density alone
-    + Fig4. Soil measures under mixture pots plotted against M.v. biomass and total biomass
+    + Fig3. Soil measures vs Pot monoculture type
+    + Fig4. Soil measures vs M.v. biomass w/o neighbors
+    + Fig5. Soil measures vs M.v. biomass w/ neighbors, vs relative Mv abundance, vs total biomass
+3. *'e4Output_tables' folder'* has txt tables that hold anova results and mean values
 
 
 *******************
 
 #1. Clean raw dataset (run external code)
-```{r,echo=TRUE}
-source('e4CodePackage_100614/e4_cleanCode.R')
+```{r,echo=TRUE, message=FALSE}
+source('e4Code/e4_cleanCode.R')
 #str(data)
 
 ### Read-in all the custom functions for doing stats ###
-source('e4CodePackage_100614/statFxns.R')
+source('e4Code/statFxns.R')
 ```
 
 *******************
@@ -48,221 +52,243 @@ source('e4CodePackage_100614/statFxns.R')
 
 
 
-###Fig2 : Plant biomasses vs density trt
+##Fig2 : Plant biomasses vs density trt  
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.width = 4, fig.height = 7}
-source('e4CodePackage_100614/e4_Fig2stats.R')
-source('e4CodePackage_100614/e4_makeFig2.R')
+source('e4Code/e4_Fig2stats.R')
+source('e4Code/e4_makeFig2.R')
+fig2 
+```
 
-#plot
-fig2
+###*e4Output_tables/fig2_means.txt* -- Figure 2 Means
+```{r, echo=FALSE}
+### Mean table
+MEANS<-list(sum.fig2a.mivi, sum.fig2b, sum.fig2c)
+meannames<-c('Mivi','RelMivi','Total')
+i<-0
+s.table<-numeric(0)
+for (i in 1:length(MEANS)){
+  s.tab<-PrettyMeans.2levs(MEANS[[i]])
+  s.tab[,c('mean','se')]<-round(s.tab[,c('mean','se')], digits=2)
+  lab<-rep(meannames[i], dim(s.tab)[1])
+  sl.tab<-data.frame(lab, s.tab)
+  
+  s.table <- rbind(s.table, sl.tab)
 
-#means
-PrettyMeans.2levs(sum.fig2a)
-PrettyMeans.2levs(sum.fig2b.mivi)
-PrettyMeans.2levs(sum.fig2b.comp)
-PrettyMeans.2levs(sum.fig2c)
+}
+colnames(s.table)[1:3]<-c('response','comptrt','mvtrt')
+write.table(s.table, file='e4Output_tables/fig2_means.txt', sep='\t', row.names=F)
+```
 
+###*e4Output_tables/fig2_lme_anova.txt* -- Microstegium biomass, relative abundance, and total plant biomass were shaped by the density treatment, neighbor treatment, and their interaction
+```{r, echo=FALSE}
+#lme4: y ~ mvtrt + comptrt + mvtrt:comptrt + (1|bk)
 
-#lme4
-# y ~ mvtrt + comptrt + mvtrt:comptrt + (1|bk)
-PrettyLME4(lme.fig2a)
-PrettyLME4(lme.fig2b.mivi)
-PrettyLME4(lme.fig2b.comp)
-PrettyLME4(lme.fig2c)
+#Paste all anovas together
+mivi<-lme.fig2a.mivi$anova
+comp<-lme.fig2a.comp$anova
+relmivi<-lme.fig2b$anova
+totalbiom<-lme.fig2c$anova
+tmp<-rbind(mivi, comp,relmivi, totalbiom)
+resps.col<-rep(c('mivi', 'comp','relmivi','totalbiom'), each=3)
+terms.col<-rep(row.names(mivi), 4)
+tmp2<-data.frame(resps.col,terms.col,tmp)
+write.table(tmp2, file='e4Output_tables/fig2_lme_anova.txt', sep='\t', row.names=F)
+```
 
+###Microstegium biomass and relative abundance were X to X times lower in the presence of Sorghum than Panicum across density treatments (Fig 2)
+```{r, echo=FALSE}
+#Microstegium biomass
+GreaterThan.fig2ab(PrettyMeans.2levs(sum.fig2a.mivi))
+#Microstegium relative biomass
+GreaterThan.fig2ab(PrettyMeans.2levs(sum.fig2b))
+```
 
-#lm
-# lm.fig2a
-# lm.fig2b.mivi
-# lm.fig2b.comp
-# lm.fig2c
-
+###Pots with Sorghum also had X to X times more total plant biomass than those given the Panicum neighbor treatment and X to X times more total plant biomass than the no neighbor treatment (Fig 2)
+```{r, echo=FALSE}
+#Total biomass
+GreaterThan.fig2c(PrettyMeans.2levs(sum.fig2c))
 ```
 
 
-```{r,echo=FALSE, include=FALSE}
-####Fig2a letters ... not adding this...
-tuks <- PullTuks(lm.fig2a$tukys$'mvtrt:comptrt')
-
-#within P
-wP<-grep('..P...P', tuks$nam)
-tuks[wP,] # all mvtrt levels are different except 1 to 2
-
-#within S
-wS<-grep('..S...S', tuks$nam)
-tuks[wS,] # none of the levels are different
-
-#within mvtrt levels
-wmvtrt0<-grep('0...0..', tuks$nam)
-wmvtrt1<-grep('1...1..', tuks$nam)
-wmvtrt2<-grep('2...2..', tuks$nam)
-wmvtrt4<-grep('4...4..', tuks$nam)
-wmvtrt5<-grep('5...5..', tuks$nam)
-tuks[wmvtrt0,] # not diff
-tuks[wmvtrt1,] # diff (0.01)
-tuks[wmvtrt2,] # diff (<0.01)
-tuks[wmvtrt4,] # diff (<0.01)
-tuks[wmvtrt5,] # diff (<0.01)
-
-```
 
 
-
-
-###Fig3 : Monocultures vs total biomass and soil measurements
+##Fig3 : Monocultures vs total biomass and soil measurements
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=7, fig.width=3.5}
-source('e4CodePackage_100614/e4_Fig3stats.R')
-source('e4CodePackage_100614/e4_makeFig3.R')
-
-#plot
+source('e4Code/e4_Fig3stats.R')
+source('e4Code/e4_makeFig3.R')
 fig3
-
-#means
-sum.fig3a #total biomass
-PrettyMeans.2levs(sum.fig3b) #soil measures
-
-
-#lme4
-# y ~ type + (1|bk)
-lme.fig3a[[2]]$anova.pval #total biomass
-PrettyLME.fig3b(lme.fig3b) #soil measures
-
 ```
 
-####Fig3a letters 
+###*e4Output_tables/fig3a_means.txt* -- Figure 3a Means
+```{r, echo=FALSE}
+### Mean table
+s.tab<-PrettyMeans.2levs(sum.fig3.soil)
+s.tab[,c('mean','se')]<-round(s.tab[,c('mean','se')], digits=2)
+
+### Posthoc letters
+# #nhdi
+# PullTuks(lm.fig3.soil$tukys$nhdi) 
+phl.nhdi<-c('a','ab','ab','b')
+
+# #nodi
+# PullTuks(lm.fig3.soil$tukys$nodi) 
+phl.nodi<-c('a','b','bc','c')
+
+# #toti
+# PullTuks(lm.fig3.soil$tukys$totdi)
+phl.totdi<-c('a','b','bc','c')
+
+# #ammonifd
+# PullTuks(lm.fig3.soil$tukys$ammonifd)
+phl.ammonifd<-c('a','a','a','a')
+
+# #nitrifd
+# PullTuks(lm.fig3.soil$tukys$nitrifd)
+phl.nitrifd<-c('a','a','a','a')
+
+# #minzd
+# PullTuks(lm.fig3.soil$tukys$minzd)
+phl.minzd<-c('a','a','a','a')
+
+# #soilmoi
+# PullTuks(lm.fig3.soil$tukys$soilmoi)
+phl.soilmoi<-c('a','a','a','b')
+
+#all together
+phl<-c(phl.nhdi, phl.nodi, phl.totdi, phl.ammonifd, phl.nitrifd, phl.minzd, phl.soilmoi)
+table<-data.frame(s.tab,phl)
+colnames(table)[1:2]<-c('soilmeas','type')
+write.table(table, file='e4Output_tables/fig3a_means.txt', sep='\t', row.names=F)
+```
+
+###*e4Output_tables/fig3b_means.txt* -- Figure 3b Means
 ```{r,echo=FALSE}
-tuks <- PullTuks(lm.fig3a$tukys)
-tuks # all are different (p <0.01) except Pavi v Mivi
+### Mean table
+s.tab<-sum.fig3.total
+s.tab[,c('mean','se')]<-round(s.tab[,c('mean','se')], digits=2)
 
+### Posthoc letters
+# #total
+# PullTuks(lm.fig3.total$tukys)
+phl<-c('a','b','b','c')
+
+table<-data.frame(s.tab,phl)
+colnames(table)[1]<-c('type')
+write.table(table, file='e4Output_tables/fig3b_means.txt', sep='\t', row.names=F)
 ```
 
-####Fig3b letters 
-```{r,echo=FALSE}
-#nhdi
-PullTuks(lm.fig3b$tukys$nhdi) 
-# Only Sobi v Empty are different (p<0.01)
+###*e4Output_tables/fig3_lme_anova.txt* -- Soil measures and total biomass were shaped by the plant type  
+```{r, echo=FALSE}
+#lme4: y ~ type + (1|bk)
 
-#nodi
-PullTuks(lm.fig3b$tukys$nodi) 
-# All different (p<0.01) except...
-# Pavi v Mivi
-# Sobi v Pavi
+#soil measures
+thing<-SoilUnlist(lme.fig3.soil)
+tmp<-MakeTable(thing[['anovatab']])
+#write.table(tmp, file='fig3_soil_lme_anova.txt', sep='\t', row.names=F)
 
-#toti
-PullTuks(lm.fig3b$tukys$totdi)
-# All different (p<0.01) except...
-# Pavi v Mivi
-# Sobi v Pavi
+#total biomass
+thing1<-lme.fig3.total
+#write.table(thing$anova, file='fig3_total_lme.txt', sep='\t', row.names=F)
 
-#ammonifd
-PullTuks(lm.fig3b$tukys$ammonifd)
-# None are different
-
-#nitrifd
-PullTuks(lm.fig3b$tukys$nitrifd)
-# None are different
-
-#minzd
-PullTuks(lm.fig3b$tukys$minzd)
-# None are different
-
-#soilmoi
-PullTuks(lm.fig3b$tukys$soilmoi)
-# Sobi v Empty (p<0.01)
-# Sobi v Mivi (p<0.01)
-# Sobi v Pavi (p<0.01)
-
+#paste together anovas from soil measures and total biomass
+tmp2<-data.frame('type','totalbiom',thing1$anova)
+names(tmp2)<-names(tmp)
+tmp3<-rbind(tmp,tmp2)
+write.table(tmp3, file='e4Output_tables/fig3_lme_anova.txt', sep='\t', row.names=F)
 ```
+
 
 
 
 
 ##Fig4 : Mivi biomass vs soil measures w/o neighbors
 ```{r,echo=TRUE, warning=FALSE, message=FALSE, fig.height=7, fig.width=4}
-source('e4CodePackage_100614/e4_Fig4stats.R')
-source('e4CodePackage_100614/e4_makeFig4.R')
-
-#plot
+source('e4Code/e4_Fig4stats.R')
+source('e4Code/e4_makeFig4.R')
 fig4
-
-
-#lme4 anova pvals
-PrettyLME.fig4(lme.fig4)
-
-
 ```
+
+###*e4Output_tables/fig4_lme_anova.txt* and *e4Output_tables/fig4_lme_fe.txt* -- Soil measures varied by Mivi  
+```{r, echo=FALSE}
+#lme: resp <- mivi + I(mivi^2) + (1|bk)
+
+#soil measures
+thing<-SoilUnlist(lme.fig4)
+#MakeTable(thing[['anovatab']])
+write.table(MakeTable(thing[['anovatab']]), file='e4Output_tables/fig4_lme_anova.txt', sep='\t', row.names=F)
+
+#MakeTable(thing[['fetab']])
+write.table(MakeTable(thing[['fetab']]), file='e4Output_tables/fig4_lme_fe.txt', sep='\t', row.names=F)
+#write.table(MakeTable(thing[['retab']]), file='e4Output_tables/fig4_lme_re.txt', sep='\t', row.names=F)
+
+
+#No Empty pots
+thing<-SoilUnlist(lme.fig4.noempty)
+MakeTable(thing[['anovatab']])
+MakeTable(thing[['fetab']])
+```
+
 
 
 
 ##Fig5. Mixture plant biomass vs soil measures
-+ Calculate the change in soil measurement values in the presence of M.v. (run external code)
-```{r,echo=TRUE}
-source('e4CodePackage_100614/e4_calcsiCode.R')
++ Exclude pots without 2 species present
+```{r,echo=FALSE}
+#Calculate the change in soil measurement values in the presence of M.v. (run external code)
+source('e4Code/e4_calcsiCode.R')
 #str(datas)
 ```
 
-+ Fig 5
 ```{r,echo=TRUE, warning=FALSE, message=FALSE,  fig.height=7, fig.width=6}
-source('e4CodePackage_100614/e4_Fig5stats.R')
-source('e4CodePackage_100614/e4_makeFig5.R')
-
-#plot
+source('e4Code/e4_Fig5stats.R')
+source('e4Code/e4_makeFig5.R')
 fig5
-
-#for mivi
-PrettyMeans.2levs(sum.fig5.mivi) #comptrt means
-PrettyLME.fig5(lme.fig5.mivi) #pvals and fixed effect coefs
-
-#for total
-PrettyMeans.2levs(sum.fig5.total) #comptrt means
-PrettyLME.fig5(lme.fig5.total) #pvals and fixed effect coefs
-
-
 ```
 
+###*e4Output_tables/fig5_lme_mivi_anova.txt* -- Soil measures varied by Mivi and comptrt
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#lme: resp <- mivi + I(mivi^2) + comptrt + mivi:comptrt + (1|bk)
 
+#soil measures
+thing<-SoilUnlist(lme.fig5.mivi)
+
+#MakeTable(thing[['fetab']])
+#write.table(MakeTable(thing[['fetab']]), file='e4Output_tables/fig5_lme_mivi_fe.txt', sep='\t', row.names=F)
+#write.table(MakeTable(thing[['retab']]), file='e4Output_tables/fig5_lme_mivi_re.txt', sep='\t', row.names=F)
+write.table(MakeTable(thing[['anovatab']]), file='e4Output_tables/fig5_lme_mivi_anova.txt', sep='\t', row.names=F)
+```
+
+###*e4Output_tables/fig5_lme_relmivi_anova.txt* -- Soil measures varied by RelMivi and comptrt  
+```{r, echo=FALSE,warning=FALSE, message=FALSE}
+#lme: resp <- relmivi + I(relmivi^2) + comptrt + relmivi:comptrt + (1|bk)
+
+#soil measures
+thing<-SoilUnlist(lme.fig5.relmivi)
+#MakeTable(thing[['anovatab']])
+#write.table(MakeTable(thing[['fetab']]), file='e4Output_tables/fig5_lme_relmivi_fe.txt', sep='\t', row.names=F)
+#write.table(MakeTable(thing[['retab']]), file='e4Output_tables/fig5_lme_relmivi_re.txt', sep='\t', row.names=F)
+write.table(MakeTable(thing[['anovatab']]), file='e4Output_tables/fig5_lme_relmivi_anova.txt', sep='\t', row.names=F)
+```
+
+###*e4Output_tables/fig5_lme_total_anova.txt* -- Soil measures varied by Total  
+```{r, echo=FALSE,warning=FALSE, message=FALSE}
+#lme: resp <- relmivi + I(relmivi^2) + comptrt + relmivi:comptrt + (1|bk)
+
+#soil measures
+thing<-SoilUnlist(lme.fig5.total)
+#MakeTable(thing[['anovatab']])
+#write.table(MakeTable(thing[['fetab']]), file='e4Output_tables/fig5_lme_total_fe.txt', sep='\t', row.names=F)
+#write.table(MakeTable(thing[['retab']]), file='e4Output_tables/fig5_lme_total_re.txt', sep='\t', row.names=F)
+write.table(MakeTable(thing[['anovatab']]), file='e4Output_tables/fig5_lme_total_anova.txt', sep='\t', row.names=F)
+```
+
+###*e4Output_tables/fig5_means.txt* -- Mean soil measurement values by comptrt in mvtrt=1,2,4,5
+```{r, echo=FALSE,warning=FALSE, message=FALSE}
+### Mean table
+s.tab<-PrettyMeans.2levs(sum.fig5.mivi)
+s.tab[,c('mean','se')]<-round(s.tab[,c('mean','se')], digits=2)
+write.table(s.tab, file='e4Output_tables/fig5_means.txt', sep='\t', row.names=F)
+```
 
 *******************
-
-#3. Other stats????
-
-### Predict soil measurement using mivi biomass, compabund, and total
-+ Set up model fxns (run external code.... make these into mixed effects models)  
-```{r, echo=TRUE, include=FALSE}
-#str(datas)
-datas2<-datas
-source('e4CodePackage_100614/e4_fitmodCode.R')
-#ModFxn1
-#ModFxn2
-#ModFxn3
-```
-+ Set up generic fxn to pull out info from each fitted model 
-+ Fit the models  
-+ Organize fitted model results into tables; view the fitted model results
-+ Significant model terms
-
-Model 1. sF = (mivi * beta)  
-```{r,echo=FALSE, include=FALSE}
-#dim(modl1)
-PvalSumm(modl1, 0.1)
-```
-  
-Model 2. sF = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
-```{r,echo=FALSE, include=FALSE}
-#dim(modl2)
-PvalSumm(modl2, 0.1)
-```
-  
-Model 3. sF = (total * beta)  
-```{r,echo=FALSE, include=FALSE}
-#dim(modl3)
-PvalSumm(modl3, 0.1)
-```
-
-
-
-
-
-
-
 

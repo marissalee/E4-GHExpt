@@ -1,0 +1,15 @@
+"rownames"	".id"	"Sum.Sq"	"Mean.Sq"	"NumDF"	"DenDF"	"F.value"	"Pr..F."
+"biomval"	"nhdi"	300.7	300.7	1	108.99	0.45	0.5
+"I(biomval^2)"	"nhdi"	58.77	58.77	1	110.09	2.38	0.13
+"biomval"	"nodi"	2821.57	2821.57	1	107.5	5.43	0.02
+"I(biomval^2)"	"nodi"	88.14	88.14	1	107.81	1.01	0.32
+"biomval"	"totdi"	4888.87	4888.87	1	107.58	3.25	0.07
+"I(biomval^2)"	"totdi"	3.51	3.51	1	107.95	0.03	0.86
+"biomval"	"ammonifd"	1.83	1.83	1	109.19	0.41	0.52
+"I(biomval^2)"	"ammonifd"	0.41	0.41	1	110.4	1.86	0.18
+"biomval"	"nitrifd"	13.62	13.62	1	108.54	0.26	0.61
+"I(biomval^2)"	"nitrifd"	4.47	4.47	1	109.53	0.84	0.36
+"biomval"	"minzd"	5.22	5.22	1	108.41	0.15	0.7
+"I(biomval^2)"	"minzd"	2.07	2.07	1	109.3	0.43	0.51
+"biomval"	"soilmoi"	2311.49	2311.49	1	112.06	0.07	0.79
+"I(biomval^2)"	"soilmoi"	107.92	107.92	1	114.41	5.35	0.02

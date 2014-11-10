@@ -1,0 +1,13 @@
+"resps.col"	"terms.col"	"Sum.Sq"	"Mean.Sq"	"NumDF"	"DenDF"	"F.value"	"Pr..F."
+"mivi"	"mvtrt"	2726.77	908.92	3	97.99	31.71	0
+"mivi"	"comptrt"	9324.76	4662.38	2	98	168.86	0
+"mivi"	"mvtrt:comptrt"	544.28	90.71	6	97.99	3.3	0.01
+"comp"	"mvtrt"	9633.18	2408.29	4	81	15.37	0
+"comp"	"comptrt"	78076.1	78076.1	1	81	498.28	0
+"comp"	"mvtrt:comptrt"	383.14	95.78	4	81	0.61	0.66
+"relmivi"	"mvtrt"	21718.53	5429.63	4	81	54.15	0
+"relmivi"	"comptrt"	25863.35	25863.35	1	81	257.92	0
+"relmivi"	"mvtrt:comptrt"	14053.51	3513.38	4	81	35.04	0
+"totalbiom"	"mvtrt"	1720.03	430.01	4	125.02	3.11	0.02
+"totalbiom"	"comptrt"	100322.64	50161.32	2	125.02	382.45	0
+"totalbiom"	"mvtrt:comptrt"	8413.98	1051.75	8	125.02	8.01	0

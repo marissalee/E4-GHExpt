@@ -1,0 +1,71 @@
+---
+title: "e4_ms_models"
+author: "Marissa Lee"
+date: "October 19, 2014"
+output: pdf_document
+---
+
+*******************
+
+#1. Clean raw dataset (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_cleanCode.R')
+#str(data)
+
+### Read-in all the custom functions for doing stats ###
+source('e4CodePackage_100614/statFxns.R')
+```
+
+*******************
+
++ Calculate the change in soil measurement values in the presence of M.v. (run external code)
+```{r,echo=TRUE}
+source('e4CodePackage_100614/e4_calcsiCode.R')
+#str(datas)
+```
+
+
+
+#3. Other stats????
+
+### Predict soil measurement using mivi biomass, compabund, and total
++ Set up model fxns (run external code.... make these into mixed effects models)  
+```{r, echo=TRUE, include=FALSE}
+#str(datas)
+datas2<-datas
+source('e4CodePackage_100614/e4_fitmodCode.R')
+#ModFxn1
+#ModFxn2
+#ModFxn3
+```
++ Set up generic fxn to pull out info from each fitted model 
++ Fit the models  
++ Organize fitted model results into tables; view the fitted model results
++ Significant model terms
+
+Model 1. sF = (mivi * beta)  
+```{r,echo=FALSE, include=FALSE}
+#dim(modl1)
+PvalSumm(modl1, 0.1)
+```
+  
+Model 2. sF = (mivi * beta) + (compabund * beta2) + ((mivi * compabund) * beta3)  
+```{r,echo=FALSE, include=FALSE}
+#dim(modl2)
+PvalSumm(modl2, 0.1)
+```
+  
+Model 3. sF = (total * beta)  
+```{r,echo=FALSE, include=FALSE}
+#dim(modl3)
+PvalSumm(modl3, 0.1)
+```
+
+
+
+
+
+
+
+
+

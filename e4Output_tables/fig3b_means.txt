@@ -1,0 +1,5 @@
+"type"	"mean"	"se"	"n"	"phl"
+"Empty"	0	0	70	"a"
+"Mivi"	36.25	1.1	63	"b"
+"Pavi"	33.29	0.97	70	"b"
+"Sobi"	83.84	2.69	70	"c"
