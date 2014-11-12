@@ -65,7 +65,8 @@ source('e4Code/statFxns.R')
 ##Fig2 : Plant biomasses vs density trt  
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height = 4, fig.width = 4}
 source('e4Code/e4_Fig2stats.R')
-source('e4Code/e4_makeFig2.R')
+source('e4Code/e4_makeFig2_basePlots.R')
+#source('e4Code/e4_makeFig2.R')
 fig2 
 ```
 
@@ -125,7 +126,8 @@ GreaterThan.fig2c(PrettyMeans.2levs(sum.fig2c))
 ##Fig3 : Monocultures vs total biomass and soil measurements
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=9, fig.width=3.5}
 source('e4Code/e4_Fig3stats.R')
-source('e4Code/e4_makeFig3.R')
+source('e4Code/e4_makeFig3_basePlots.R')
+#source('e4Code/e4_makeFig3.R')
 fig3
 ```
 
