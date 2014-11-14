@@ -95,6 +95,26 @@ df.list<-list(soilmoi, total, nh, no, tot, ammon, nitrif, minz)
 #none
 
 ##################################
+#TUKEY LETTERS
+##################################
+#based on 'edited e4figures_rev.pptx in e4_repository/oldVersions/R_figures/edited
+tuk.soilmoi<-c('a','a','a','b')
+tuk.total<-c('a','b','b','c') 
+tuk.nh<-c('a','ab','ab','b')
+tuk.no<-c('a','b','bc','c')
+tuk.tot<-c('a','b','bc','c')
+tuk.ammon<-c('','','','')
+tuk.nitrif<-c('','','','')
+tuk.minz<-c('','','','')
+tuks<-list(tuk.soilmoi,tuk.total,
+     tuk.nh,tuk.no,tuk.tot,
+     tuk.ammon,tuk.nitrif,tuk.minz)
+tukbuff<-c(5, #soilmoi
+           8, #total
+           rep(10, 3), # n pools
+           rep(1, 3)) # n fluxes
+
+##################################
 #SET UP Y AXES
 ##################################
 #ynames
@@ -196,7 +216,11 @@ for (i in 1:length(measorder)){
     y0se<-dfsub$mean + dfsub$se
     y1se<-dfsub$mean - dfsub$se
     arrows(xse, y0se, xse, y1se, angle=90, code=3, length=0)
-  
+    
+    #ADD TUKEY LETTERS
+    text(x=x, y=dfsub$mean + dfsub$se + tukbuff[i],
+         labels=tuks[[i]])
+    
 }
 
 #PANEL FOR THE X AXIS TITLE
