@@ -47,7 +47,7 @@ citation("lmerTest")
 *******************
 
 #1. Clean raw dataset (run external code)
-```{r,echo=TRUE, message=FALSE}
+```{r,echo=FALSE, message=FALSE}
 source('e4Code/e4_cleanCode.R')
 #str(data)
 
@@ -63,12 +63,13 @@ source('e4Code/statFxns.R')
 
 
 ##Fig2 : Plant biomasses vs density trt  
-```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height = 4, fig.width = 4}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 source('e4Code/e4_Fig2stats.R')
 source('e4Code/e4_makeFig2_basePlots.R')
 #source('e4Code/e4_makeFig2.R')
-fig2 
+#fig2 
 ```
+![Figure2](e4Output_figures/fig2.png)
 
 ###*e4Output_tables/fig2_means.txt* -- Figure 2 Means
 ```{r, echo=FALSE}
@@ -117,19 +118,20 @@ GreaterThan.fig2ab(PrettyMeans.2levs(sum.fig2a.mivi))
 ###Pots with Sorghum also had X to X times more total plant biomass than those given the Panicum neighbor treatment and X to X times more total plant biomass than the no neighbor treatment (Fig 2)
 ```{r, echo=FALSE}
 #Total biomass
-GreaterThan.fig2c(PrettyMeans.2levs(sum.fig2c))
+GreaterThan.fig2c(PrettyMeans.2levs(sum.fig2b))
 ```
 
 
 
 
 ##Fig3 : Monocultures vs total biomass and soil measurements
-```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.height=9, fig.width=3.5}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 source('e4Code/e4_Fig3stats.R')
 source('e4Code/e4_makeFig3_basePlots.R')
 #source('e4Code/e4_makeFig3.R')
-fig3
+#fig3
 ```
+![Figure3](e4Output_figures/fig3.png)
 
 ###*e4Output_tables/fig3a_means.txt* -- Figure 3a Means
 ```{r, echo=FALSE}
@@ -214,12 +216,14 @@ write.table(tmp3, file='e4Output_tables/fig3_lme_anova.txt', sep='\t', row.names
 
 
 ##Fig4 : Mivi biomass vs soil measures w/o neighbors
-```{r,echo=TRUE, warning=FALSE, message=FALSE, fig.height=9, fig.width=3.5}
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
 source('e4Code/e4_Fig4stats.R')
-source('e4Code/e4_makeFig4.R')
-fig4.text
-fig4.text.noempty
+source('e4Code/e4_makeFig4_basePlots.R')
+#source('e4Code/e4_makeFig4.R')
+#fig4.text
+#fig4.text.noempty
 ```
+![Figure4](e4Output_figures/fig4.png)
 
 ###*e4Output_tables/fig4_lme_anova.txt* and *e4Output_tables/fig4_lme_fe.txt* -- Soil measures varied by Mivi  
 ```{r, echo=FALSE}
@@ -252,7 +256,7 @@ f4fe.noe[f4fe.noe$.id == 'totdi',]
 
 
 
-##Fig5. Mixture plant biomass vs soil measures
+##Fig5 and 6. Mixture plant biomass vs soil measures
 + Exclude pots without 2 species present
 ```{r,echo=FALSE}
 #Calculate the change in soil measurement values in the presence of M.v. (run external code)
@@ -260,15 +264,19 @@ source('e4Code/e4_calcsiCode.R')
 #str(datas)
 ```
 
-```{r,echo=TRUE, warning=FALSE, message=FALSE,  fig.height=9, fig.width=4}
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
 source('e4Code/e4_Fig5stats.R')
 warnings()
-source('e4Code/e4_makeFig5.R')
-fig5
-fig6
+source('e4Code/e4_makeFig5_basePlots.R')
+source('e4Code/e4_makeFig6_basePlots.R')
+#source('e4Code/e4_makeFig5.R')
+#fig5
+#fig6
 
 
 ```
+![Figure5](e4Output_figures/fig5.png)
+![Figure6](e4Output_figures/fig6.png)
 
 ###*e4Output_tables/fig5_lme_mivi_anova.txt* and *e4Output_tables/fig5_lme_mivi_fe.txt* -- Soil measures varied by mivi and comptrt
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}

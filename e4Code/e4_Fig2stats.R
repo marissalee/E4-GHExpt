@@ -96,7 +96,7 @@ lme.fig2a.comp <- FitLME.fig2(sub1) #model <- lmer(biomval ~ mvtrt + comptrt + m
 
 ### FIG 2B ###################################################
 
-#1. Biommeas == mivi
+#1. Biommeas == total
 ## MEANS
 sub1<-subset(data2, biommeas == 'total' & mvtrt !=6) #subset
 sum.fig2b <- PullSum.Fig2(sub1) #summarize

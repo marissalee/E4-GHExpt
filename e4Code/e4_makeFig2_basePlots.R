@@ -1,4 +1,4 @@
-#e4_makeFig2.R
+#e4_makeFig2_basePlots.R
 #Make Figure 2: Mv density treatment vs plant biomass
 
 ##################################
@@ -15,8 +15,16 @@ source('e4Code/e4_prepdfFig2.R')
 #none
 
 ##################################
+##################################
 ### Set up Figure Panels ###
-
+png(filename='e4Output_figures/fig2.png', 
+    width=15.24, #6 inches
+    height=17.78, #7 inches
+    units="cm", res=300)
+#quartz()
+#dev.size(units = "cm")
+#dev.off()
+##################################
 #PANEL ORDER
 # Two panels stacked on top of one another, plus a long panel on the right side to hold the legend
 mat<-matrix(c(1,2,3,3), #number of panels
@@ -25,31 +33,34 @@ mat<-matrix(c(1,2,3,3), #number of panels
             byrow = FALSE) #order that the panels are added
 
 #FIGURE DIMENSIONS
-w1<-11.43 #4.5 inches
+w.norm<-6.35 #2.5 inches
 w2<-3.81 #1.5 inches
-w<-w1+w2
-w
-h<-20.32 # 8 inches
-h1<-9.2 #approx 4 inches; needs to be smaller than 10.16cm to account for space that the x axis takes up in panel B
-h2<-h-h1 #approx 4 inches
+w<-w.norm+w2
+w # 4 inches
+
+h.norm<-6.35 #2.5 inches
+h<-h.norm*2
+h # 5 inches
 
 #PANEL SETUP
 l1<-layout(mat,
-       widths=c(lcm(w1),lcm(w2)), #3:1 ratio based on ncol #
-       heights=c(lcm(h1),lcm(h2))) #1:1 ratio based on nrow #
+       widths=c(lcm(w.norm),lcm(w2)), #3:1 ratio based on ncol #
+       heights=c(lcm(h.norm),lcm(h.norm))) #1:1 ratio based on nrow #
 layout.show(l1) #number of panels
 
 #UNIVERSAL X-AXIS
 xname.line1<-expression(italic(Microstegium))
 xname.line2<-"\ndensity treatment"
-xlims<-c(0,7.5)
+xlims<-c(0,7)
 xat1<-1:6
 
 ##################################
+##################################
 ### Figure 2A: Plot Mv treatment vs species biomass ###
-par(mar=c(0,5,1,0)) #c(bottom, left, top, right) 
 
+##################################
 #SET UP DATAFRAMES
+##################################
 df <- data2[ , c("mvtrt","biomval")] #same for both panels
 #xy
 mivi.N<-sum.fig2a.mivi$N
@@ -59,28 +70,37 @@ comp.P<-sum.fig2a.comp$P
 comp.S<-sum.fig2a.comp$S
 df.list<-list(mivi.N, mivi.P, mivi.S, comp.P, comp.S)
 
+##################################
 #ATTRIBUTES OF GROUPS
+##################################
 pchs<-c(16,17,15,17,15)
 ltys<-c(1,1,1,2,2)
 colors<-c("darkgray","black","black","black","black")
 
+##################################
 #SET UP Y-AXIS
+##################################
 yname<-"Species' dry above-\nground plant biomass (g)"
 ylims<-c(0,100)
 yat1<-seq.int(0,100, by=10)
 
+##################################
 #SET UP PLOT
+par(mar=c(0,0,0,0)) #c(bottom, left, top, right) 
 plot(biomval~as.integer(mvtrt), df, axes = FALSE, type = "n", 
      xlab='', ylab='',
      xlim=xlims,
      ylim=ylims)
 box()
-#panel label
-mtext(expression(bold(A)), side=3, adj=0.05, padj=3, outer = F, cex = 1)
-#x-axis
-axis(1, at = xat1, labels=FALSE, tick=TRUE)
+
+#PANEL LABELS
+mtext(expression(bold(A)), side=3, adj=0.05, padj=1.8, outer = F, cex = 1)
+
+#X AXIS
+axis(1, at = xat1, labels=FALSE, tick=FALSE)
 # mtext(xname, side = 1, outer = F, cex = 1, adj= 0.55, line=2.2)
-#y-axis
+
+#Y AXIS
 axis(2, at = yat1)
 mtext(yname, side = 2, outer = F, cex = 1, line=2)
 
@@ -102,6 +122,8 @@ for (i in 1:length(df.list)){
   y1se<-dfsub$mean - dfsub$se
   arrows(xse, y0se, xse, y1se, angle=90, code=3, length=0, col=colors[i])
 }
+
+#ADD LEGEND
 legend('topright', 
        title=expression(bold(Species)),
        c(expression(italic(Microstegium)),
@@ -111,10 +133,12 @@ legend('topright',
 
 
 ##################################
+##################################
 ### Figure 2B: Plot Mv treatment vs total biomass ###
-par(mar=c(4,5,1,0)) #c(bottom, left, top, right) 
 
+##################################
 #SET UP DATAFRAMES
+##################################
 df <- data2[ , c("mvtrt","biomval")] #same for both panels
 #xy
 total.N<-sum.fig2b$N
@@ -122,29 +146,38 @@ total.P<-sum.fig2b$P
 total.S<-sum.fig2b$S
 df.list<-list(total.N, total.P, total.S)
 
+##################################
 #ATTRIBUTES OF GROUPS
+##################################
 pchs<-c(16,17,15)
 ltys<-c(1,1,1)
 colors<-c("darkgray","black","black")
 
+##################################
 #SET UP Y AXIS
+##################################
 yname<-"Total dry above-\nground plant biomass (g)"
 ylims<-c(0,100)
 yat1<-seq.int(0,100, by=10)
 
+##################################
 #SETUP PLOT
+par(mar=c(0,0,0,0)) #c(bottom, left, top, right) 
 plot(biomval~as.integer(mvtrt), df, axes = FALSE, type = "n", 
      xlab='', ylab='',
      xlim=xlims,
      ylim=ylims)
 box()
-#panel label
-mtext(expression(bold(B)), side=3, adj=0.05, padj=3, outer = F, cex = 1)
-#x-axis
+
+#PANEL LABELS
+mtext(expression(bold(B)), side=3, adj=0.05, padj=1.8, outer = F, cex = 1)
+
+#X AXIS
 axis(1, at = xat1)
-mtext(xname.line1, side = 1, outer = F, cex = 1, adj= 0.55, line=2.2)
-mtext(xname.line2, side = 1, outer = F, cex = 1, adj= 0.55, line=3.2)
-#y-axis
+mtext(xname.line1, side = 1, outer = F, cex = 1, adj= 0.55, line=2.5)
+mtext(xname.line2, side = 1, outer = F, cex = 1, adj= 0.55, line=3.5)
+
+#Y AXIS
 axis(2, at = yat1)
 mtext(yname, side = 2, outer = F, cex = 1, line=2)
 
@@ -167,9 +200,8 @@ for (i in 1:length(df.list)){
   arrows(xse, y0se, xse, y1se, angle=90, code=3, length=0, col=colors[i])
 }
 
-
 ##################################
-### Add Legends ###
+### ADD UNIVERSAL LEGEND ###
 par(mar=c(0,0,0,0)) #c(bottom, left, top, right) 
 plot(biomval~as.integer(mvtrt), df, axes = FALSE, type = "n", 
      xlab='', ylab='',
@@ -189,11 +221,9 @@ legend('top',
        cex=.8, bty="n", inset=.1)
 
 
-
-
-## Export Fig2
-#ggsave(filename="e4Output_figures/fig2.pdf", plot=fig2, width = 4, height = 5, units = 'in') #save the plot and define its size
-
+##################################
+## FINISH 
+dev.off()
 
 
 
