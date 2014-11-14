@@ -33,12 +33,12 @@ mat<-matrix(c(1,2,3,3), #number of panels
             byrow = FALSE) #order that the panels are added
 
 #FIGURE DIMENSIONS
-w.norm<-6.35 #2.5 inches
-w2<-3.81 #1.5 inches
+w.norm<-6.35 #2 inches
+w2<-3.18 #1.5 inches
 w<-w.norm+w2
 w # 4 inches
 
-h.norm<-6.35 #2.5 inches
+h.norm<-5.08 #2 inches
 h<-h.norm*2
 h # 5 inches
 
@@ -51,7 +51,7 @@ layout.show(l1) #number of panels
 #UNIVERSAL X-AXIS
 xname.line1<-expression(italic(Microstegium))
 xname.line2<-"\ndensity treatment"
-xlims<-c(0,7)
+xlims<-c(0,8.5)
 xat1<-1:6
 
 ##################################
@@ -102,7 +102,7 @@ axis(1, at = xat1, labels=FALSE, tick=FALSE)
 
 #Y AXIS
 axis(2, at = yat1)
-mtext(yname, side = 2, outer = F, cex = 1, line=2)
+mtext(yname, side = 2, outer = F, cex = 0.9, line=2)
 
 #ADD DATA
 i<-0
@@ -179,7 +179,7 @@ mtext(xname.line2, side = 1, outer = F, cex = 1, adj= 0.55, line=3.5)
 
 #Y AXIS
 axis(2, at = yat1)
-mtext(yname, side = 2, outer = F, cex = 1, line=2)
+mtext(yname, side = 2, outer = F, cex = .9, line=2)
 
 #ADD DATA
 i<-0
@@ -218,7 +218,7 @@ legend('top',
          expression(italic(Sorghum))), 
        col=c(8,1,1), 
        pch=c(16,17,15), 
-       cex=.8, bty="n", inset=.1)
+       cex=.9, bty="n", inset=.1)
 
 
 ##################################
