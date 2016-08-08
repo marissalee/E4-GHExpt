@@ -17,10 +17,10 @@ source('e4Code/e4_prepdfFig2.R')
 ##################################
 ##################################
 ### Set up Figure Panels ###
-png(filename='e4Output_figures/fig2.png', 
-    width=15.24, #6 inches
-    height=17.78, #7 inches
-    units="cm", res=300)
+tiff(filename='e4Output_figures/fig2.tiff', 
+    width=6, #6 inches
+    height=7, #7 inches
+    units="in", res=400, compression='lzw')
 #quartz()
 #dev.size(units = "cm")
 #dev.off()
@@ -73,7 +73,7 @@ df.list<-list(mivi.N, mivi.P, mivi.S, comp.P, comp.S)
 ##################################
 #ATTRIBUTES OF GROUPS
 ##################################
-pchs<-c(16,17,15,17,15)
+pchs<-c(16,17,0,17,0)
 ltys<-c(1,1,1,2,2)
 colors<-c("darkgray","black","black","black","black")
 
@@ -149,7 +149,7 @@ df.list<-list(total.N, total.P, total.S)
 ##################################
 #ATTRIBUTES OF GROUPS
 ##################################
-pchs<-c(16,17,15)
+pchs<-c(16,17,0)
 ltys<-c(1,1,1)
 colors<-c("darkgray","black","black")
 
@@ -217,7 +217,7 @@ legend('top',
          expression(italic(Panicum)),
          expression(italic(Sorghum))), 
        col=c(8,1,1), 
-       pch=c(16,17,15), 
+       pch=c(16,17,0), 
        cex=.9, bty="n", inset=.1)
 
 

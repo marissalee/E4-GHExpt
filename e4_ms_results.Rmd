@@ -98,6 +98,7 @@ write.table(s.table, file='e4Output_tables/fig2_means.txt', sep='\t', row.names=
 
 #Paste all anovas together
 mivi<-lme.fig2a.mivi$anova
+mivi
 comp<-lme.fig2a.comp$anova
 totalbiom<-lme.fig2b$anova
 tmp<-rbind(mivi, comp,totalbiom)
@@ -253,8 +254,11 @@ f4fe.noe[f4fe.noe$.id == 'totdi',]
 
 ```
 
-
-
+### Nitrate and Inorganic N results hold when empty pots are excluded
+```{r, echo=FALSE}
+lme.fig4.noempty$nodi$fe
+lme.fig4.noempty$totdi$fe
+```
 
 ##Fig5 and 6. Mixture plant biomass vs soil measures
 + Exclude pots without 2 species present

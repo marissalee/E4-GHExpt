@@ -83,10 +83,10 @@ GenerateAts<-function(lim.temp, multiple){
 ##################################
 ##################################
 ### Set up Figure Panels ###
-png(filename='e4Output_figures/fig4.png', 
-    width=19.05, # 7.5inches
-    height=20.32, # 8inches 
-    units="cm", res=300)
+tiff(filename='e4Output_figures/fig4.tiff', 
+    width=7.5, # 7.5inches
+    height=8, # 8inches 
+    units="in", res=400, compression='lzw')
 #quartz()
 #dev.off()
 #dev.size(units = "cm")
@@ -185,7 +185,7 @@ for (i in 1:length(ylimlist)){
 ##################################
 #LME MODEL FIXED EFFECT P VALS
 ##################################
-cex.terms<-0.8
+cex.terms<-0.7
 terms<-c('mv','mv2')
 reorder<-c(2,3,4,5,6,7,1)
 mtxline<-c(-1.5,-2.5,-3.5) #for positioning mtext labels in the upper right corner of panels
@@ -263,7 +263,7 @@ for (i in 1:length(measorder)){
   points(y=df1$soilval,x=df1$mivi, pch=16)
   #add lme regression line
   lines(y=df1$pred, x=df1$mivi)
-  lines(y=df2$pred, x=df2$mivi, lty=2) #fit wtihout empty pots
+  #lines(y=df2$pred, x=df2$mivi, lty=2) #fit wtihout empty pots
   
 }
 

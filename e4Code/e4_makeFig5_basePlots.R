@@ -84,10 +84,10 @@ GenerateAts<-function(lim.temp, multiple){
 ##################################
 ##################################
 ### Set up Figure Panels ###
-png(filename='e4Output_figures/fig5.png', 
-    width=19.05, # 7.5inches
-    height=20.32, # 8inches 
-    units="cm", res=300)
+tiff(filename='e4Output_figures/fig5.tiff', 
+    width=7.5, # 7.5inches
+    height=8, # 8inches 
+    units="in", res=400, compression='lzw')
 #quartz()
 #dev.size(units = "cm")
 #dev.off()
@@ -97,7 +97,7 @@ png(filename='e4Output_figures/fig5.png',
 measorder<-c('soilmoi',
              'nhdi','nodi','totdi',
              'ammonifd','nitrifd','minzd') # Build the panels so that measurements follow in this order
-mat<-matrix(c(1,0,0,
+mat<-matrix(c(1,9,9,
               2,3,4,
               5,6,7,
               8,8,8),
@@ -140,7 +140,7 @@ sub2<-PredAttach(sub1, lme.fig5.mivi) #update dataframe with predicted values
 #ATTRIBUTES OF GROUPS
 ##################################
 NEIGHTRT<-unique(sub2$comptrt)
-pchs<-c(16,17,15)
+pchs<-c(16,17,0)
 ltys<-c(1,2,1)
 colors<-c("darkgray","black","black")
 
@@ -187,8 +187,8 @@ for (i in 1:length(ylimlist)){
 ##################################
 #LME MODEL FIXED EFFECT P VALS
 ##################################
-cex.terms<-0.8
-terms<-c('mv','mv2','neightrt','mv:neightrt')
+cex.terms<-0.7
+terms<-c('mv','mv^2','neightrt','mv:neightrt')
 reorder<-c(2,3,4,5,6,7,1)
 mtxline<-c(-1.5,-2.5,-3.5,-4.5,-5.5) #for positioning mtext labels in the upper right corner of panels
 result<-PullPvals(lme.fig5.mivi) #ignore warning message, pull pvals
@@ -197,10 +197,12 @@ colnames(df.aux)[2:5]<-c('line1','line2','line3','line4')
 df1.aux<-data.frame(reorder, df.aux)
 df2.aux<-orderBy(~reorder, df1.aux)
 
+as.expression(df2.aux[,'line2'])
+
 ##################################
 ## Base plot
 #SET UP LOOP, WILL LOOP THROUGH EACH MEASURE TO ADD EACH PANEL
-i<-0
+i<-1
 for (i in 1:length(measorder)){
   par(mar=c(0,0,0,0)) #c(bottom, left, top, right) # side plot
   
@@ -271,6 +273,25 @@ plot(sF~biomval, df, axes = FALSE, type = "n",
      ylim=ylimlist[[i]])
 mtext(xname.line1, side=1, line=1, adj=0.55)
 
+#PANEL FOR THE LEGEND
+par(mar=c(0,0,0,0))
+plot(sF~biomval, df, axes = FALSE, type = "n", 
+     xlab='', ylab='',
+     xlim=xlims,
+     ylim=ylimlist[[i]])
+legend('topleft', 
+       title=expression(
+         paste(
+           bold(Neighbor), ' ',
+           bold(treatment)
+         )),
+       c('No Neighbor',
+         expression(italic(Panicum)),
+         expression(italic(Sorghum))), 
+       col=colors, 
+       pch=pchs,
+       lty=ltys,
+       cex=0.9, bty="n", inset=.1)
 
 
 

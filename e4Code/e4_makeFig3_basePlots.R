@@ -22,10 +22,10 @@ GenerateAts<-function(lim.temp, multiple){
 ##################################
 ##################################
 ### Set up Figure Panels ###
-png(filename='e4Output_figures/fig3.png', 
-    width=19.05, # 7.5inches
-    height=20.32, # 8inches 
-    units="cm", res=300)
+tiff(filename='e4Output_figures/fig3.tiff', 
+    width=7.5, # 7.5inches
+    height=8, # 8inches 
+    units="in", res=400, compression='lzw')
 #quartz()
 #dev.size(units = "cm")
 #dev.off()
